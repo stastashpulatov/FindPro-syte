@@ -33,10 +33,14 @@ npm install
 PORT=5000
 
 # Подключение к MongoDB
-MONGO_URI=mongodb://localhost:27017/findpro
+MONGODB_URI=mongodb://localhost:27017/findpro
 
 # Секрет для JWT
 JWT_SECRET=supersecret_change_me
+
+# Базовый URL API для фронтенда (опционально)
+# Если backend запущен на другом хосте/порту
+REACT_APP_API_URL=http://localhost:5000/api
 ```
 
 ## Скрипты
@@ -80,6 +84,7 @@ npm run start:server
 ## Полезно знать
 - Основная точка входа backend: `server.js` (см. скрипты)
 - TailwindCSS подключён на стороне фронтенда (см. конфигурацию в проекте)
+- Для фронтенда переменная `REACT_APP_API_URL` управляет базовым адресом API
 
 ## Лицензия
 Укажите лицензию проекта при необходимости.

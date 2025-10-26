@@ -1,22 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const Provider = require('../models/Provider');
+const providersRepo = require('../repositories/providersRepo');
 
 // Получить всех исполнителей
 router.get('/', async (req, res) => {
   try {
     const { category, minRating } = req.query;
-    const query = {};
-    
-    if (category) {
-      query.categories = category;
-    }
-    
-    if (minRating) {
-      query.rating = { $gte: parseFloat(minRating) };
-    }
-    
-    const providers = await Provider.find(query).sort({ rating: -1 });
+    const providers = providersRepo.find({
+      category: category || undefined,
+      minRating: minRating ? parseFloat(minRating) : undefined,
+    });
     res.json({ success: true, data: providers });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -26,7 +19,7 @@ router.get('/', async (req, res) => {
 // Получить исполнителя по ID
 router.get('/:id', async (req, res) => {
   try {
-    const provider = await Provider.findById(req.params.id);
+    const provider = providersRepo.findById(req.params.id);
     if (!provider) {
       return res.status(404).json({ success: false, message: 'Исполнитель не найден' });
     }
@@ -39,9 +32,8 @@ router.get('/:id', async (req, res) => {
 // Создать исполнителя
 router.post('/', async (req, res) => {
   try {
-    const newProvider = new Provider(req.body);
-    await newProvider.save();
-    res.status(201).json({ success: true, data: newProvider });
+    const created = providersRepo.create(req.body);
+    res.status(201).json({ success: true, data: created });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
@@ -50,17 +42,11 @@ router.post('/', async (req, res) => {
 // Обновить исполнителя
 router.put('/:id', async (req, res) => {
   try {
-    const provider = await Provider.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
-    
-    if (!provider) {
+    const updated = providersRepo.update(req.params.id, req.body);
+    if (!updated) {
       return res.status(404).json({ success: false, message: 'Исполнитель не найден' });
     }
-    
-    res.json({ success: true, data: provider });
+    res.json({ success: true, data: updated });
   } catch (error) {
     res.status(400).json({ success: false, message: error.message });
   }
@@ -69,12 +55,10 @@ router.put('/:id', async (req, res) => {
 // Удалить исполнителя
 router.delete('/:id', async (req, res) => {
   try {
-    const provider = await Provider.findByIdAndDelete(req.params.id);
-    
-    if (!provider) {
+    const ok = providersRepo.delete(req.params.id);
+    if (!ok) {
       return res.status(404).json({ success: false, message: 'Исполнитель не найден' });
     }
-    
     res.json({ success: true, message: 'Исполнитель удален' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

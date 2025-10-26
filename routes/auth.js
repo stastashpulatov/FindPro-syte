@@ -1,23 +1,22 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const usersRepo = require('../repositories/usersRepo');
 
 // Регистрация
 router.post('/register', async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
 
-    const existingUser = await User.findOne({ email });
+    const existingUser = usersRepo.findByEmail(email);
     if (existingUser) {
       return res.status(400).json({ success: false, message: 'Пользователь уже существует' });
     }
 
-    const user = new User({ name, email, password, role });
-    await user.save();
+    const user = await usersRepo.create({ name, email, password, role });
 
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+      { id: user.id, role: user.role },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '7d' }
     );
@@ -26,7 +25,7 @@ router.post('/register', async (req, res) => {
       success: true,
       token,
       user: {
-        id: user._id,
+        id: user.id,
         name: user.name,
         email: user.email,
         role: user.role
@@ -42,18 +41,18 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    const user = usersRepo.findByEmail(email);
     if (!user) {
       return res.status(401).json({ success: false, message: 'Неверный email или пароль' });
     }
 
-    const isMatch = await user.comparePassword(password);
+    const isMatch = await usersRepo.comparePassword(user, password);
     if (!isMatch) {
       return res.status(401).json({ success: false, message: 'Неверный email или пароль' });
     }
 
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+      { id: user.id, role: user.role },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '7d' }
     );
@@ -62,7 +61,7 @@ router.post('/login', async (req, res) => {
       success: true,
       token,
       user: {
-        id: user._id,
+        id: user.id,
         name: user.name,
         email: user.email,
         role: user.role
