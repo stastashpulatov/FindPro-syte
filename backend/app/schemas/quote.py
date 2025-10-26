@@ -2,8 +2,6 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
 from enum import Enum
-from .request import Request
-from .provider import Provider
 
 class QuoteStatus(str, Enum):
     PENDING = "pending"
@@ -40,8 +38,7 @@ class QuoteInDBBase(QuoteBase):
 
 # Properties to return to client
 class Quote(QuoteInDBBase):
-    request: Request
-    provider: Provider
+    pass
 
 # Properties stored in DB
 class QuoteInDB(QuoteInDBBase):

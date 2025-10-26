@@ -1,8 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
-from .provider import Provider
-from .category import Category
 
 # Shared properties
 class ServiceBase(BaseModel):
@@ -37,8 +35,7 @@ class ServiceInDBBase(ServiceBase):
 
 # Properties to return to client
 class Service(ServiceInDBBase):
-    provider: Provider
-    category: Category
+    pass
 
 # Properties stored in DB
 class ServiceInDB(ServiceInDBBase):

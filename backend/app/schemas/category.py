@@ -1,7 +1,9 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional, List, ForwardRef
-from .service import Service
+from typing import Optional, List, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .service import Service
 
 # Shared properties
 class CategoryBase(BaseModel):
@@ -29,11 +31,10 @@ class CategoryInDBBase(CategoryBase):
 # Properties to return to client
 class Category(CategoryInDBBase):
     subcategories: List['Category'] = []
-    services: List[Service] = []
 
 # Properties stored in DB
 class CategoryInDB(CategoryInDBBase):
     pass
 
 # Handle forward references for subcategories
-Category.update_forward_refs()
+Category.model_rebuild()

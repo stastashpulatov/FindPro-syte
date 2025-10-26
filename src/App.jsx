@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Star, ArrowRight, Menu, X, MapPin, Phone, Mail, Clock, Briefcase } from 'lucide-react';
 import api from './services/api';
+import AuthModal from './components/AuthModal';
+import { 
+  HomePage, 
+  RequestPage, 
+  QuotesPage, 
+  MyRequestsPage, 
+  ProvidersPage, 
+  Footer 
+} from './pages';
 
 const App = () => {
   const [currentPage, setCurrentPage] = useState('home');
@@ -17,6 +26,8 @@ const App = () => {
   const [allRequests, setAllRequests] = useState([]);
   const [providers, setProviders] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [isAuthed, setIsAuthed] = useState(!!localStorage.getItem('token'));
 
   const categories = [
     { id: 1, name: 'Строительство', icon: '🏗️', description: 'Строительные работы любой сложности' },
@@ -31,7 +42,7 @@ const App = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [isAuthed]);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -87,10 +98,24 @@ const App = () => {
           </nav>
 
           <div className="hidden md:flex items-center space-x-4">
-            <button className="px-4 py-2 text-blue-600 hover:text-blue-700 font-medium">Войти</button>
-            <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
-              Регистрация
-            </button>
+            {!isAuthed ? (
+              <>
+                <button onClick={() => setAuthOpen(true)} className="px-4 py-2 text-blue-600 hover:text-blue-700 font-medium">Войти</button>
+                <button onClick={() => setAuthOpen(true)} className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">
+                  Регистрация
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => {
+                  localStorage.removeItem('token');
+                  setIsAuthed(false);
+                }}
+                className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium"
+              >
+                Выйти
+              </button>
+            )}
           </div>
 
           <button className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -116,13 +141,41 @@ const App = () => {
       <Header />
       
       {/* Страницы - HomePage, RequestPage, QuotesPage, MyRequestsPage, ProvidersPage */}
-      {currentPage === 'home' && <HomePage />}
-      {currentPage === 'request' && <RequestPage />}
+      {currentPage === 'home' && (
+        <HomePage 
+          setCurrentPage={setCurrentPage} 
+          categories={categories}
+        />
+      )}
+      {currentPage === 'request' && (
+        <RequestPage 
+          setCurrentPage={setCurrentPage}
+          categories={categories}
+          setQuotes={setQuotes}
+          setAllRequests={setAllRequests}
+          allRequests={allRequests}
+        />
+      )}
       {currentPage === 'quotes' && <QuotesPage />}
-      {currentPage === 'my-requests' && <MyRequestsPage />}
-      {currentPage === 'providers' && <ProvidersPage />}
+      {currentPage === 'my-requests' && (
+        <MyRequestsPage 
+          setCurrentPage={setCurrentPage}
+          allRequests={allRequests}
+          setAllRequests={setAllRequests}
+        />
+      )}
+      {currentPage === 'providers' && (
+        <ProvidersPage 
+          setCurrentPage={setCurrentPage}
+        />
+      )}
       
       <Footer />
+      <AuthModal
+        open={authOpen}
+        onClose={() => setAuthOpen(false)}
+        onAuthed={() => { setIsAuthed(true); setAuthOpen(false); }}
+      />
     </div>
   );
 };

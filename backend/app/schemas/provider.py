@@ -1,8 +1,9 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional, List
-from .user import User
-from .service import Service
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .user import User
 
 # Shared properties
 class ProviderBase(BaseModel):
@@ -36,8 +37,7 @@ class ProviderInDBBase(ProviderBase):
 
 # Properties to return to client
 class Provider(ProviderInDBBase):
-    user: User
-    services: List[Service] = []
+    pass
 
 # Properties stored in DB
 class ProviderInDB(ProviderInDBBase):

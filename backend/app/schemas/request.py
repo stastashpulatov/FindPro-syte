@@ -1,10 +1,7 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional
 from enum import Enum
-from .user import User
-from .category import Category
-from .quote import Quote
 
 class RequestStatus(str, Enum):
     PENDING = "pending"
@@ -24,7 +21,7 @@ class RequestCreate(RequestBase):
     pass
 
 # Properties to receive on request update
-class RequestUpdate(RequestBase):
+class RequestUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
     status: Optional[RequestStatus] = None
@@ -42,9 +39,7 @@ class RequestInDBBase(RequestBase):
 
 # Properties to return to client
 class Request(RequestInDBBase):
-    user: User
-    category: Category
-    quotes: List[Quote] = []
+    pass
 
 # Properties stored in DB
 class RequestInDB(RequestInDBBase):
