@@ -22,7 +22,8 @@ fi
 
 echo "✅ Запуск сервера на http://localhost:8000"
 echo "📚 Документация: http://localhost:8000/docs"
+echo "🎛️  Админ-панель: http://localhost:8000/admin"
 echo ""
 
 # Запускаем сервер
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000

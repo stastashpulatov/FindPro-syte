@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import api from '../services/api';
 
 const AuthModal = ({ open, onClose, onAuthed }) => {
@@ -6,10 +6,30 @@ const AuthModal = ({ open, onClose, onAuthed }) => {
   const [form, setForm] = useState({ email: '', password: '', full_name: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
-  if (!open) return null;
+  const [show, setShow] = useState(false);
+  const modalRef = useRef(null);
 
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handleClose = () => {
+    setShow(false);
+    setTimeout(() => {
+      onClose && onClose();
+    }, 150);
+  };
+
+  useEffect(() => {
+    if (open) {
+      setShow(true);
+      const onKey = (e) => {
+        if (e.key === 'Escape') handleClose();
+      };
+      window.addEventListener('keydown', onKey);
+      return () => window.removeEventListener('keydown', onKey);
+    }
+  }, [open]);
+
+  if (!open) return null;
 
   const handleLogin = async () => {
     setLoading(true); setError('');
@@ -17,7 +37,7 @@ const AuthModal = ({ open, onClose, onAuthed }) => {
       const { data } = await api.login(form.email, form.password);
       localStorage.setItem('token', data.access_token);
       onAuthed && onAuthed();
-      onClose();
+      handleClose();
     } catch (e) {
       setError(e?.response?.data?.detail || 'Ошибка входа');
     } finally { setLoading(false); }
@@ -37,18 +57,24 @@ const AuthModal = ({ open, onClose, onAuthed }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-xl p-6">
+    <div
+      className={`fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-150 ${show ? 'bg-black/40 opacity-100' : 'bg-black/20 opacity-0'}`}
+      onMouseDown={(e) => { if (e.target === e.currentTarget) handleClose(); }}
+    >
+      <div
+        ref={modalRef}
+        className={`w-full max-w-md bg-white rounded-xl shadow-xl p-6 transform transition-all duration-150 ${show ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-1'}`}
+      >
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-xl font-semibold">
             {mode === 'login' ? 'Вход' : 'Регистрация'}
           </h3>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">✕</button>
+          <button onClick={handleClose} className="text-gray-500 hover:text-gray-700 transition-colors">✕</button>
         </div>
 
         <div className="flex gap-2 mb-4">
-          <button onClick={() => setMode('login')} className={`flex-1 py-2 rounded-lg border ${mode==='login'?'bg-blue-600 text-white border-blue-600':'bg-white text-gray-700'}`}>Войти</button>
-          <button onClick={() => setMode('register')} className={`flex-1 py-2 rounded-lg border ${mode==='register'?'bg-blue-600 text-white border-blue-600':'bg-white text-gray-700'}`}>Регистрация</button>
+          <button onClick={() => setMode('login')} className={`flex-1 py-2 rounded-lg border transition-colors ${mode==='login'?'bg-blue-600 text-white border-blue-600':'bg-white text-gray-700'}`}>Войти</button>
+          <button onClick={() => setMode('register')} className={`flex-1 py-2 rounded-lg border transition-colors ${mode==='register'?'bg-blue-600 text-white border-blue-600':'bg-white text-gray-700'}`}>Регистрация</button>
         </div>
 
         {error && (
@@ -74,7 +100,7 @@ const AuthModal = ({ open, onClose, onAuthed }) => {
         <button
           disabled={loading}
           onClick={mode==='login' ? handleLogin : handleRegister}
-          className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transform transition active:scale-[0.98]"
         >
           {loading ? 'Подождите...' : (mode==='login' ? 'Войти' : 'Зарегистрироваться')}
         </button>

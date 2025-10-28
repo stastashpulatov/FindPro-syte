@@ -4,8 +4,12 @@ from app.api.v1.api import api_router
 from app.core.config import settings
 from app.db.base import Base
 from app.db.session import engine
+from app.admin import setup_admin
 
 app = FastAPI(title=settings.PROJECT_NAME)
+
+# Setup Admin Panel
+setup_admin(app, engine)
 
 # Enable CORS
 app.add_middleware(
@@ -27,7 +31,12 @@ async def on_startup():
 
 @app.get("/")
 async def read_root():
-    return {"message": "Welcome to FindPro API!", "docs": "/docs", "api": settings.API_V1_STR}
+    return {
+        "message": "Welcome to FindPro API!", 
+        "docs": "/docs", 
+        "api": settings.API_V1_STR,
+        "admin": "/admin"
+    }
 
 @app.get("/health")
 async def health_check():
