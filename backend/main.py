@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.api import api_router
 from app.core.config import settings
+from app.db.base import Base
+from app.db.session import engine
 
 app = FastAPI(title=settings.PROJECT_NAME)
 
@@ -16,6 +18,12 @@ app.add_middleware(
 
 # Include API router
 app.include_router(api_router, prefix=settings.API_V1_STR)
+
+@app.on_event("startup")
+async def on_startup():
+    # Auto-create tables in non-production environments
+    if getattr(settings, "APP_ENV", "development").lower() != "production":
+        Base.metadata.create_all(bind=engine)
 
 @app.get("/")
 async def read_root():
