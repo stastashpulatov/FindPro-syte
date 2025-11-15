@@ -60,10 +60,18 @@ axiosInstance.interceptors.response.use(
 
 const api = {
   // ==================== Auth ====================
-  
+
   login: (data) => {
-    // Поддерживаем новый формат с remember_me
-    return axiosInstance.post('/auth/login', data);
+    // FastAPI OAuth2PasswordRequestForm expects form-data with username and password
+    const formData = new URLSearchParams();
+    formData.append('username', data.email || data.username);
+    formData.append('password', data.password);
+
+    return axiosInstance.post('/auth/login', formData, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
   },
 
   register: (data) => axiosInstance.post('/auth/register', data),

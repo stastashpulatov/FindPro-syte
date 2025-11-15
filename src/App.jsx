@@ -20,6 +20,7 @@ const App = () => {
   const [isAuthed, setIsAuthed] = useState(api.isAuthenticated());
   const [currentUser, setCurrentUser] = useState(api.getStoredUser());
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [pendingPage, setPendingPage] = useState(null);
 
   const categories = [
     { id: 1, name: 'Строительство', icon: '🏗️', description: 'Строительные работы любой сложности' },
@@ -71,14 +72,25 @@ const App = () => {
     setUserMenuOpen(false);
   };
 
+  // Wrapper для setCurrentPage с проверкой аутентификации
+  const navigateToPage = (page) => {
+    const authRequiredPages = ['request', 'my-requests'];
+    if (authRequiredPages.includes(page) && !isAuthed) {
+      setPendingPage(page);
+      setAuthOpen(true);
+      return;
+    }
+    setCurrentPage(page);
+  };
+
   const Header = () => (
     <header className="bg-white shadow-md sticky top-0 z-50 border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
-          <div 
-            className="flex items-center cursor-pointer group" 
-            onClick={() => setCurrentPage('home')}
+          <div
+            className="flex items-center cursor-pointer group"
+            onClick={() => navigateToPage('home')}
           >
             <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
               <span className="text-white font-bold text-xl">FP</span>
@@ -99,7 +111,7 @@ const App = () => {
               return (
                 <button
                   key={item.key}
-                  onClick={() => setCurrentPage(item.key)}
+                  onClick={() => navigateToPage(item.key)}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                     currentPage === item.key
                       ? 'bg-blue-50 text-blue-600'
@@ -154,7 +166,7 @@ const App = () => {
                     </div>
                     <button
                       onClick={() => {
-                        setCurrentPage('my-requests');
+                        navigateToPage('my-requests');
                         setUserMenuOpen(false);
                       }}
                       className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
@@ -198,9 +210,9 @@ const App = () => {
               return (
                 <button
                   key={item.key}
-                  onClick={() => { 
-                    setCurrentPage(item.key); 
-                    setMobileMenuOpen(false); 
+                  onClick={() => {
+                    navigateToPage(item.key);
+                    setMobileMenuOpen(false);
                   }}
                   className={`block w-full text-left px-4 py-3 rounded-lg font-medium transition-all ${
                     currentPage === item.key
@@ -274,14 +286,14 @@ const App = () => {
       
       <main className="flex-1">
         {currentPage === 'home' && (
-          <HomePage 
-            setCurrentPage={setCurrentPage} 
+          <HomePage
+            setCurrentPage={navigateToPage}
             categories={categories}
           />
         )}
         {currentPage === 'request' && (
-          <RequestPage 
-            setCurrentPage={setCurrentPage}
+          <RequestPage
+            setCurrentPage={navigateToPage}
             categories={categories}
             setQuotes={setQuotes}
             setAllRequests={setAllRequests}
@@ -290,15 +302,15 @@ const App = () => {
         )}
         {currentPage === 'quotes' && <QuotesPage />}
         {currentPage === 'my-requests' && (
-          <MyRequestsPage 
-            setCurrentPage={setCurrentPage}
+          <MyRequestsPage
+            setCurrentPage={navigateToPage}
             allRequests={allRequests}
             setAllRequests={setAllRequests}
           />
         )}
         {currentPage === 'providers' && (
-          <ProvidersPage 
-            setCurrentPage={setCurrentPage}
+          <ProvidersPage
+            setCurrentPage={navigateToPage}
           />
         )}
       </main>
@@ -307,11 +319,19 @@ const App = () => {
       
       <AuthModal
         open={authOpen}
-        onClose={() => setAuthOpen(false)}
-        onAuthed={() => { 
-          setIsAuthed(true); 
+        onClose={() => {
+          setAuthOpen(false);
+          setPendingPage(null);
+        }}
+        onAuthed={() => {
+          setIsAuthed(true);
           setAuthOpen(false);
           loadCurrentUser();
+          // Переходим на ожидающую страницу после авторизации
+          if (pendingPage) {
+            setCurrentPage(pendingPage);
+            setPendingPage(null);
+          }
         }}
       />
     </div>

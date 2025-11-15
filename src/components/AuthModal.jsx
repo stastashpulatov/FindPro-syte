@@ -34,7 +34,7 @@ const AuthModal = ({ open, onClose, onAuthed }) => {
   const handleLogin = async () => {
     setLoading(true); setError('');
     try {
-      const { data } = await api.login(form.email, form.password);
+      const { data } = await api.login({ email: form.email, password: form.password });
       localStorage.setItem('token', data.access_token);
       onAuthed && onAuthed();
       handleClose();
