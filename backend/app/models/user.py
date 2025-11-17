@@ -16,8 +16,12 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Relationships
-    provider = relationship("Provider", back_populates="user", uselist=False)
-    requests = relationship("Request", back_populates="user")
+    provider = relationship(
+        "Provider", back_populates="user", uselist=False, cascade="all, delete-orphan"
+    )
+    requests = relationship(
+        "Request", back_populates="user", cascade="all, delete-orphan"
+    )
     
     def __repr__(self):
         return f"<User {self.email}>"

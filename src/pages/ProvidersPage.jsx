@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Star, MapPin, Briefcase, CheckCircle } from 'lucide-react';
 import api from '../services/api';
 
-const ProvidersPage = ({ setCurrentPage }) => {
+const ProvidersPage = ({ onNavigate }) => {
   const [providers, setProviders] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -66,7 +66,7 @@ const ProvidersPage = ({ setCurrentPage }) => {
               Специалисты пока не зарегистрированы в системе
             </p>
             <button
-              onClick={() => setCurrentPage('request')}
+              onClick={() => onNavigate('request')}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
             >
               Создать заявку
@@ -120,7 +120,7 @@ const ProvidersPage = ({ setCurrentPage }) => {
                 {renderRating(provider.rating || 0)}
 
                 <button
-                  onClick={() => setCurrentPage('request')}
+                  onClick={() => onNavigate('request')}
                   className="w-full mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
                 >
                   Отправить заявку

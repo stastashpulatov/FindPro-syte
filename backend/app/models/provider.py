@@ -18,8 +18,12 @@ class Provider(Base):
     
     # Relationships
     user = relationship("User", back_populates="provider")
-    services = relationship("ProviderService", back_populates="provider")
-    quotes = relationship("Quote", back_populates="provider")
+    services = relationship(
+        "ProviderService", back_populates="provider", cascade="all, delete-orphan"
+    )
+    quotes = relationship(
+        "Quote", back_populates="provider", cascade="all, delete-orphan"
+    )
     
     def __repr__(self):
         return f"<Provider {self.company_name or self.user.email}>"

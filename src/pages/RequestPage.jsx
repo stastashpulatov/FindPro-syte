@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, Send } from 'lucide-react';
 import api from '../services/api';
 
-const RequestPage = ({ setCurrentPage, categories, setQuotes, setAllRequests, allRequests }) => {
+const RequestPage = ({ onNavigate, categories, setQuotes, setAllRequests, allRequests }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -37,7 +37,7 @@ const RequestPage = ({ setCurrentPage, categories, setQuotes, setAllRequests, al
       setQuotes(quotesRes.data);
       
       // Переходим на страницу с предложениями
-      setCurrentPage('my-requests');
+      onNavigate('my-requests');
       
       // Показываем уведомление
       alert('Заявка успешно создана! Ожидайте предложений от специалистов.');
@@ -65,7 +65,7 @@ const RequestPage = ({ setCurrentPage, categories, setQuotes, setAllRequests, al
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <button
-          onClick={() => setCurrentPage('home')}
+          onClick={() => onNavigate('home')}
           className="flex items-center text-blue-600 hover:text-blue-700 mb-6"
         >
           <ArrowLeft size={20} className="mr-2" />
@@ -141,7 +141,7 @@ const RequestPage = ({ setCurrentPage, categories, setQuotes, setAllRequests, al
             <div className="flex gap-4">
               <button
                 type="button"
-                onClick={() => setCurrentPage('home')}
+                onClick={() => onNavigate('home')}
                 className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
               >
                 Отмена

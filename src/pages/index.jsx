@@ -3,6 +3,7 @@ export { default as HomePage } from './HomePage';
 export { default as RequestPage } from './RequestPage';
 export { default as MyRequestsPage } from './MyRequestsPage';
 export { default as ProvidersPage } from './ProvidersPage';
+export { default as AccountSettingsPage } from './AccountSettingsPage';
 
 // Quotes Page Component (simple placeholder)
 export const QuotesPage = () => (

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Clock, CheckCircle, XCircle, Eye, Trash2 } from 'lucide-react';
 import api from '../services/api';
 
-const MyRequestsPage = ({ setCurrentPage, allRequests, setAllRequests }) => {
+const MyRequestsPage = ({ onNavigate, allRequests, setAllRequests }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [quotes, setQuotes] = useState([]);
@@ -20,7 +20,7 @@ const MyRequestsPage = ({ setCurrentPage, allRequests, setAllRequests }) => {
       console.error('Error loading requests:', error);
       if (error.response?.status === 401) {
         alert('Необходимо войти в систему');
-        setCurrentPage('home');
+        onNavigate('home');
       }
     } finally {
       setIsLoading(false);
@@ -122,7 +122,7 @@ const MyRequestsPage = ({ setCurrentPage, allRequests, setAllRequests }) => {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Мои заявки</h1>
           <button
-            onClick={() => setCurrentPage('request')}
+            onClick={() => onNavigate('request')}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
           >
             Создать новую заявку
@@ -133,7 +133,7 @@ const MyRequestsPage = ({ setCurrentPage, allRequests, setAllRequests }) => {
           <div className="bg-white rounded-lg shadow p-12 text-center">
             <p className="text-gray-600 mb-4">У вас пока нет заявок</p>
             <button
-              onClick={() => setCurrentPage('request')}
+              onClick={() => onNavigate('request')}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
             >
               Создать первую заявку

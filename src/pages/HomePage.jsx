@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowRight, CheckCircle, Users, Star, Clock, Shield, Zap, Award, TrendingUp } from 'lucide-react';
 
-const HomePage = ({ setCurrentPage, categories }) => {
+const HomePage = ({ onNavigate, categories }) => {
   const [show, setShow] = useState(false);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
 
@@ -82,14 +82,14 @@ const HomePage = ({ setCurrentPage, categories }) => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <button
-                onClick={() => setCurrentPage('request')}
+                onClick={() => onNavigate('request')}
                 className="group px-8 py-4 bg-white text-blue-600 rounded-xl text-lg font-semibold hover:bg-blue-50 transition-all inline-flex items-center gap-2 shadow-xl hover:shadow-2xl hover:-translate-y-1 transform"
               >
                 Создать заявку бесплатно
                 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
               </button>
               <button
-                onClick={() => setCurrentPage('providers')}
+                onClick={() => onNavigate('providers')}
                 className="px-8 py-4 bg-transparent border-2 border-white text-white rounded-xl text-lg font-semibold hover:bg-white hover:text-blue-600 transition-all"
               >
                 Найти специалиста
@@ -204,7 +204,7 @@ const HomePage = ({ setCurrentPage, categories }) => {
             {categories.map((category, idx) => (
               <div
                 key={category.id}
-                onClick={() => setCurrentPage('request')}
+                onClick={() => onNavigate('request')}
                 className={`group bg-gradient-to-br from-gray-50 to-white border-2 border-gray-100 p-6 rounded-2xl text-center cursor-pointer transition-all duration-300 hover:shadow-2xl hover:border-blue-300 hover:-translate-y-2 ${show ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
                 style={{ transitionDelay: `${Math.min(idx, 6) * 50}ms` }}
               >
@@ -280,7 +280,7 @@ const HomePage = ({ setCurrentPage, categories }) => {
               Создайте заявку прямо сейчас и получите предложения в течение часа
             </p>
             <button
-              onClick={() => setCurrentPage('request')}
+              onClick={() => onNavigate('request')}
               className="group px-10 py-5 bg-white text-blue-600 rounded-xl text-lg font-bold hover:bg-blue-50 transition-all inline-flex items-center gap-3 shadow-xl hover:shadow-2xl hover:-translate-y-1 transform"
             >
               Создать заявку бесплатно

@@ -1,6 +1,14 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
+const getDefaultApiUrl = () => {
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    const base = window.location.origin.replace(/\/$/, '');
+    return `${base}/api/v1`;
+  }
+  return 'http://localhost:8000/api/v1';
+};
+
+const API_URL = process.env.REACT_APP_API_URL || getDefaultApiUrl();
 
 // Create axios instance with default config
 const axiosInstance = axios.create({
@@ -63,7 +71,11 @@ const api = {
   
   login: (data) => {
     // Поддерживаем новый формат с remember_me
-    return axiosInstance.post('/auth/login', data);
+    const headers = {};
+    if (typeof URLSearchParams !== 'undefined' && data instanceof URLSearchParams) {
+      headers['Content-Type'] = 'application/x-www-form-urlencoded';
+    }
+    return axiosInstance.post('/auth/login', data, { headers });
   },
 
   register: (data) => axiosInstance.post('/auth/register', data),
@@ -89,6 +101,7 @@ const api = {
   getCurrentUser: () => axiosInstance.get('/users/me'),
 
   updateCurrentUser: (data) => axiosInstance.put('/users/me', data),
+  deleteAccount: () => axiosInstance.delete('/users/me'),
 
   getAllUsers: (params) => axiosInstance.get('/users', { params }),
 

@@ -32,28 +32,62 @@ const AuthModal = ({ open, onClose, onAuthed }) => {
   if (!open) return null;
 
   const handleLogin = async () => {
-    setLoading(true); setError('');
+    setLoading(true);
+    setError('');
     try {
-      const { data } = await api.login(form.email, form.password);
-      localStorage.setItem('token', data.access_token);
+      const payload = new URLSearchParams();
+      payload.append('email', form.email);
+      payload.append('username', form.email); // FastAPI совместимость
+      payload.append('password', form.password);
+
+      const { data } = await api.login(payload);
+      const token = data?.access_token || data?.token;
+      if (!token) {
+        throw new Error('Токен не получен от сервера');
+      }
+
+      localStorage.setItem('token', token);
+      if (data?.user) {
+        api.setStoredUser(data.user);
+      }
       onAuthed && onAuthed();
       handleClose();
     } catch (e) {
-      setError(e?.response?.data?.detail || 'Ошибка входа');
-    } finally { setLoading(false); }
+      const message =
+        e?.response?.data?.detail ||
+        e?.response?.data?.message ||
+        e?.message ||
+        'Ошибка входа';
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleRegister = async () => {
     if (!form.email || !form.password) { setError('Заполните email и пароль'); return; }
     setLoading(true); setError('');
     try {
-      await api.register({ email: form.email, password: form.password, full_name: form.full_name || null });
-      // авто-вход
-      await handleLogin();
+      const name = form.full_name?.trim();
+      await api.register({
+        email: form.email,
+        password: form.password,
+        full_name: name || null,
+        name: name || form.email.split('@')[0], // Совместимость с Node API
+      });
     } catch (e) {
-      setError(e?.response?.data?.detail || 'Ошибка регистрации');
+      const message =
+        e?.response?.data?.detail ||
+        e?.response?.data?.message ||
+        e?.message ||
+        'Ошибка регистрации';
+      setError(message);
       setLoading(false);
+      return;
     }
+
+    // авто-вход после успешной регистрации
+    await handleLogin();
   };
 
   return (

@@ -25,7 +25,9 @@ class Request(Base):
     # Relationships
     user = relationship("User", back_populates="requests")
     category = relationship("Category", back_populates="requests")
-    quotes = relationship("Quote", back_populates="request")
+    quotes = relationship(
+        "Quote", back_populates="request", cascade="all, delete-orphan"
+    )
     
     def __repr__(self):
         return f"<Request {self.title} - {self.status}>"

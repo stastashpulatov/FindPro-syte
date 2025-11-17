@@ -8,6 +8,7 @@ import {
   QuotesPage, 
   MyRequestsPage, 
   ProvidersPage, 
+  AccountSettingsPage,
   Footer 
 } from './pages';
 
@@ -20,6 +21,7 @@ const App = () => {
   const [isAuthed, setIsAuthed] = useState(api.isAuthenticated());
   const [currentUser, setCurrentUser] = useState(api.getStoredUser());
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [pendingPage, setPendingPage] = useState(null);
 
   const categories = [
     { id: 1, name: 'Строительство', icon: '🏗️', description: 'Строительные работы любой сложности' },
@@ -67,8 +69,35 @@ const App = () => {
     api.logout();
     setIsAuthed(false);
     setCurrentUser(null);
+    setPendingPage(null);
     setCurrentPage('home');
     setUserMenuOpen(false);
+  };
+
+  const handleAccountDeleted = () => {
+    handleLogout();
+    alert('Аккаунт и все связанные данные удалены.');
+  };
+
+  const navigateTo = (page) => {
+    const authRequiredPages = ['request', 'my-requests', 'settings'];
+    if (authRequiredPages.includes(page) && !isAuthed) {
+      alert('Чтобы продолжить, войдите или зарегистрируйтесь.');
+      setPendingPage(page);
+      setAuthOpen(true);
+      return;
+    }
+    setCurrentPage(page);
+  };
+
+  const handleAuthed = () => {
+    setIsAuthed(true);
+    setAuthOpen(false);
+    loadCurrentUser();
+    if (pendingPage) {
+      setCurrentPage(pendingPage);
+      setPendingPage(null);
+    }
   };
 
   const Header = () => (
@@ -78,7 +107,7 @@ const App = () => {
           {/* Logo */}
           <div 
             className="flex items-center cursor-pointer group" 
-            onClick={() => setCurrentPage('home')}
+            onClick={() => navigateTo('home')}
           >
             <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
               <span className="text-white font-bold text-xl">FP</span>
@@ -94,12 +123,13 @@ const App = () => {
               { key: 'home', label: 'Главная' },
               { key: 'my-requests', label: 'Мои заявки', authRequired: true },
               { key: 'providers', label: 'Специалисты' },
+              { key: 'settings', label: 'Настройки', authRequired: true },
             ].map((item) => {
               if (item.authRequired && !isAuthed) return null;
               return (
                 <button
                   key={item.key}
-                  onClick={() => setCurrentPage(item.key)}
+                  onClick={() => navigateTo(item.key)}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                     currentPage === item.key
                       ? 'bg-blue-50 text-blue-600'
@@ -154,13 +184,23 @@ const App = () => {
                     </div>
                     <button
                       onClick={() => {
-                        setCurrentPage('my-requests');
+                        navigateTo('my-requests');
                         setUserMenuOpen(false);
                       }}
                       className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                     >
                       <Bell size={16} />
                       Мои заявки
+                    </button>
+                    <button
+                      onClick={() => {
+                        navigateTo('settings');
+                        setUserMenuOpen(false);
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                    >
+                      <User size={16} />
+                      Настройки
                     </button>
                     <button
                       onClick={handleLogout}
@@ -193,13 +233,14 @@ const App = () => {
               { key: 'home', label: 'Главная' },
               { key: 'my-requests', label: 'Мои заявки', authRequired: true },
               { key: 'providers', label: 'Специалисты' },
+              { key: 'settings', label: 'Настройки', authRequired: true },
             ].map((item) => {
               if (item.authRequired && !isAuthed) return null;
               return (
                 <button
                   key={item.key}
                   onClick={() => { 
-                    setCurrentPage(item.key); 
+                    navigateTo(item.key); 
                     setMobileMenuOpen(false); 
                   }}
                   className={`block w-full text-left px-4 py-3 rounded-lg font-medium transition-all ${
@@ -275,13 +316,13 @@ const App = () => {
       <main className="flex-1">
         {currentPage === 'home' && (
           <HomePage 
-            setCurrentPage={setCurrentPage} 
+            onNavigate={navigateTo} 
             categories={categories}
           />
         )}
         {currentPage === 'request' && (
           <RequestPage 
-            setCurrentPage={setCurrentPage}
+            onNavigate={navigateTo}
             categories={categories}
             setQuotes={setQuotes}
             setAllRequests={setAllRequests}
@@ -291,14 +332,21 @@ const App = () => {
         {currentPage === 'quotes' && <QuotesPage />}
         {currentPage === 'my-requests' && (
           <MyRequestsPage 
-            setCurrentPage={setCurrentPage}
+            onNavigate={navigateTo}
             allRequests={allRequests}
             setAllRequests={setAllRequests}
           />
         )}
         {currentPage === 'providers' && (
           <ProvidersPage 
-            setCurrentPage={setCurrentPage}
+            onNavigate={navigateTo}
+          />
+        )}
+        {currentPage === 'settings' && (
+          <AccountSettingsPage 
+            currentUser={currentUser}
+            onLogout={handleLogout}
+            onAccountDeleted={handleAccountDeleted}
           />
         )}
       </main>
@@ -308,11 +356,7 @@ const App = () => {
       <AuthModal
         open={authOpen}
         onClose={() => setAuthOpen(false)}
-        onAuthed={() => { 
-          setIsAuthed(true); 
-          setAuthOpen(false);
-          loadCurrentUser();
-        }}
+        onAuthed={handleAuthed}
       />
     </div>
   );
