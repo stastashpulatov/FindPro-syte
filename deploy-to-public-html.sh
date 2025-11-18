@@ -27,15 +27,21 @@ mkdir -p "${PUBLIC_HTML}/api"
 echo "📄 Копирую PHP прокси..."
 cp "${PROJECT_DIR}/api-proxy.php" "${PUBLIC_HTML}/api/index.php"
 
-# Собираем фронтенд, если нужно
+# Проверяем наличие build директории
 if [ ! -d "${PROJECT_DIR}/build" ]; then
-    echo "🏗️  Собираю фронтенд..."
-    cd "${PROJECT_DIR}"
-    if [ ! -d "node_modules" ]; then
-        echo "📦 Устанавливаю npm зависимости..."
-        npm install
-    fi
-    npm run build
+    echo "⚠️  Директория build не найдена!"
+    echo ""
+    echo "📋 Соберите фронтенд локально и скопируйте build на сервер:"
+    echo "   1. На локальной машине:"
+    echo "      cd /путь/к/проекту"
+    echo "      npm run build"
+    echo ""
+    echo "   2. Скопируйте build на сервер:"
+    echo "      rsync -avz build/ user@server:/home/s1143023/domains/coolbola.uz/public_html/FindPro-syte/build/"
+    echo ""
+    echo "   3. Затем запустите этот скрипт снова"
+    echo ""
+    exit 1
 fi
 
 # Копируем build фронтенда
@@ -62,7 +68,12 @@ echo "      - https://coolbola.uz - должен открыться сайт"
 echo "      - https://coolbola.uz/api/v1/health - должен вернуться JSON"
 echo ""
 echo "   3. Если не работает, проверьте:"
-echo "      - PHP включён на хостинге"
-echo "      - FastAPI запущен на порту 8000"
-echo "      - Права доступа на файлы (chmod 644 для .php, 755 для директорий)"
+echo "      - PHP включён на хостинге (создайте test.php с <?php phpinfo(); ?>)"
+echo "      - FastAPI запущен на порту 8000 (ps aux | grep uvicorn)"
+echo "      - Права доступа на файлы:"
+echo "        chmod 644 ${PUBLIC_HTML}/api/index.php"
+echo "        chmod 755 ${PUBLIC_HTML}/api"
+echo ""
+echo "📝 Примечание: Если build директории нет, соберите фронтенд локально"
+echo "   и скопируйте build/ на сервер через rsync или scp"
 
