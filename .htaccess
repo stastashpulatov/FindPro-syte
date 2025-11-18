@@ -1,0 +1,21 @@
+# .htaccess для проксирования API запросов через PHP
+# Разместите этот файл в public_html вместе с api-proxy.php
+
+# Включаем mod_rewrite (если доступен)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Проксируем все запросы к /api на api-proxy.php
+    RewriteCond %{REQUEST_URI} ^/api
+    RewriteRule ^api/(.*)$ api-proxy.php?path=$1 [QSA,L]
+    
+    # Для SPA: все остальные запросы отдаём index.html
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} !^/api
+    RewriteRule ^(.*)$ index.html [L]
+</IfModule>
+
+# Если mod_rewrite недоступен, можно использовать другой подход
+# Но для этого нужно будет изменить структуру URL
+

@@ -92,7 +92,33 @@ start_backend() {
   cd "${BACKEND_DIR}"
   free_port "${BACKEND_PORT}" "backend"
   local host="${BACKEND_HOST:-0.0.0.0}"
-  log "🚀 Запуск backend (prod) на ${host}:${BACKEND_PORT} (workers=${UVICORN_WORKERS})"
+  
+  # Устанавливаем путь к build директории, если он не задан
+  if [ -z "${FRONTEND_BUILD_DIR:-}" ]; then
+    # Пробуем найти build директорию
+    local build_paths=(
+      "${ROOT_DIR}/build"
+      "${FRONTEND_DIR}/build"
+      "/home/s1143023/coolbola.uz"
+      "/home/s1143023/domains/coolbola.uz/public_html/FindPro-syte/build"
+    )
+    for path in "${build_paths[@]}"; do
+      if [ -d "${path}" ] && [ -f "${path}/index.html" ]; then
+        export FRONTEND_BUILD_DIR="${path}"
+        log "📁 Найдена build директория: ${path}"
+        break
+      fi
+    done
+  fi
+  
+  if [ -n "${FRONTEND_BUILD_DIR:-}" ]; then
+    export FRONTEND_BUILD_DIR
+    log "🚀 Запуск backend (prod) на ${host}:${BACKEND_PORT} (workers=${UVICORN_WORKERS})"
+    log "   FastAPI будет отдавать статику из: ${FRONTEND_BUILD_DIR}"
+  else
+    log "⚠️  Build директория не найдена. FastAPI будет работать только как API."
+  fi
+  
   uvicorn app.main:app --host "${host}" --port "${BACKEND_PORT}" --workers "${UVICORN_WORKERS}" &
   BACKEND_PID=$!
 }
@@ -149,8 +175,29 @@ ensure_python
 create_venv
 install_backend_deps
 prepare_database
+
+# Собираем фронтенд, если build директории нет
+if [ ! -d "${ROOT_DIR}/build" ] && [ ! -d "${FRONTEND_DIR}/build" ]; then
+  build_frontend
+fi
+
 start_backend
 wait_for_backend
-build_frontend
-serve_frontend
+
+log ""
+log "✅ Сервер запущен!"
+log "   FastAPI доступен на: http://${BACKEND_HOST:-0.0.0.0}:${BACKEND_PORT}"
+log "   API: http://${BACKEND_HOST:-0.0.0.0}:${BACKEND_PORT}/api/v1"
+log "   Документация: http://${BACKEND_HOST:-0.0.0.0}:${BACKEND_PORT}/docs"
+if [ -n "${FRONTEND_BUILD_DIR:-}" ]; then
+  log "   Фронтенд: http://${BACKEND_HOST:-0.0.0.0}:${BACKEND_PORT}/"
+fi
+log ""
+log "⚠️  ВАЖНО: На shared-хостинге нужно настроить nginx для проксирования домена на порт ${BACKEND_PORT}"
+log "   Обратитесь в поддержку хостинга с просьбой добавить:"
+log "   location / { proxy_pass http://127.0.0.1:${BACKEND_PORT}; }"
+log ""
+
+# Ждём завершения
+wait
 
