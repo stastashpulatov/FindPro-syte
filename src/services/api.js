@@ -1,14 +1,33 @@
 import axios from 'axios';
 
-const getDefaultApiUrl = () => {
-  if (typeof window !== 'undefined' && window.location?.origin) {
-    const base = window.location.origin.replace(/\/$/, '');
-    return `${base}/api/v1`;
+// Умное определение API URL для работы везде
+const getApiUrl = () => {
+  // 1. Проверяем переменную окружения (для production build)
+  if (process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL;
   }
+
+  // 2. Если в браузере - используем текущий домен
+  if (typeof window !== 'undefined') {
+    const protocol = window.location.protocol;
+    const hostname = window.location.hostname;
+    
+    // Для локальной разработки
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://localhost:8000/api/v1';
+    }
+    
+    // Для production (coolbola.uz)
+    return `${protocol}//${hostname}/api/v1`;
+  }
+
+  // 3. Fallback
   return 'http://localhost:8000/api/v1';
 };
 
-const API_URL = process.env.REACT_APP_API_URL || getDefaultApiUrl();
+const API_URL = getApiUrl();
+
+console.log('🔗 API URL:', API_URL); // Для отладки
 
 // Create axios instance with default config
 const axiosInstance = axios.create({
@@ -16,7 +35,8 @@ const axiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000, // 10 seconds timeout
+  timeout: 30000, // 30 секунд для медленного хостинга
+  withCredentials: false, // Важно для CORS
 });
 
 // Request interceptor - добавляем токен
@@ -26,40 +46,49 @@ axiosInstance.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // Логируем для отладки
+    console.log('📤 Request:', config.method.toUpperCase(), config.url);
+    
     return config;
   },
   (error) => {
+    console.error('❌ Request error:', error);
     return Promise.reject(error);
   }
 );
 
 // Response interceptor - обработка ошибок
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('✅ Response:', response.config.url, response.status);
+    return response;
+  },
   async (error) => {
+    console.error('❌ Response error:', {
+      url: error.config?.url,
+      status: error.response?.status,
+      message: error.message,
+      data: error.response?.data
+    });
+
     const originalRequest = error.config;
 
     // Если 401 и это не запрос на логин/регистрацию
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      // Пытаемся обновить токен
-      try {
-        const response = await axiosInstance.post('/auth/refresh-token');
-        const { access_token } = response.data;
-        
-        localStorage.setItem('token', access_token);
-        axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
-        originalRequest.headers['Authorization'] = `Bearer ${access_token}`;
-        
-        return axiosInstance(originalRequest);
-      } catch (refreshError) {
-        // Если обновление не удалось, удаляем токен и редиректим на логин
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.location.href = '/';
-        return Promise.reject(refreshError);
+      // Если это запрос логина/регистрации - не пытаемся обновить токен
+      if (originalRequest.url?.includes('/auth/login') || 
+          originalRequest.url?.includes('/auth/register')) {
+        return Promise.reject(error);
       }
+
+      // Очищаем токен и редиректим
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
+      return Promise.reject(error);
     }
 
     return Promise.reject(error);
@@ -70,7 +99,6 @@ const api = {
   // ==================== Auth ====================
   
   login: (data) => {
-    // Поддерживаем новый формат с remember_me
     const headers = {};
     if (typeof URLSearchParams !== 'undefined' && data instanceof URLSearchParams) {
       headers['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -80,27 +108,21 @@ const api = {
 
   register: (data) => axiosInstance.post('/auth/register', data),
 
-  verifyToken: () => axiosInstance.post('/auth/verify-token'),
-
-  refreshToken: () => axiosInstance.post('/auth/refresh-token'),
-
   logout: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    return axiosInstance.post('/auth/logout').catch(() => {});
+    return Promise.resolve();
   },
 
   recoverPassword: (email) => 
     axiosInstance.post(`/auth/password-recovery/${email}`),
-
-  resetPassword: (data) => 
-    axiosInstance.post('/auth/reset-password', data),
 
   // ==================== Users ====================
   
   getCurrentUser: () => axiosInstance.get('/users/me'),
 
   updateCurrentUser: (data) => axiosInstance.put('/users/me', data),
+  
   deleteAccount: () => axiosInstance.delete('/users/me'),
 
   getAllUsers: (params) => axiosInstance.get('/users', { params }),
@@ -177,10 +199,13 @@ const api = {
   setStoredUser: (user) => {
     localStorage.setItem('user', JSON.stringify(user));
   },
+
+  // ==================== Health Check ====================
+  
+  healthCheck: () => axiosInstance.get('/health').catch(() => 
+    axios.get(`${API_URL.replace('/api/v1', '')}/health`)
+  ),
 };
 
-// Экспорт для использования в компонентах
 export default api;
-
-// Дополнительный экспорт инстанса для прямого использования
-export { axiosInstance };
+export { axiosInstance, API_URL };
