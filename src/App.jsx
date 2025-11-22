@@ -2,14 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Menu, X, User, LogOut, Bell } from 'lucide-react';
 import api from './services/api';
 import AuthModal from './components/AuthModal';
-import { 
-  HomePage, 
-  RequestPage, 
-  QuotesPage, 
-  MyRequestsPage, 
-  ProvidersPage, 
+import {
+  HomePage,
+  RequestPage,
+  QuotesPage,
+  MyRequestsPage,
+  ProvidersPage,
   AccountSettingsPage,
-  Footer 
+  AdminPage,
+  Footer
 } from './pages';
 
 const App = () => {
@@ -79,7 +80,9 @@ const App = () => {
     alert('Аккаунт и все связанные данные удалены.');
   };
 
-  const navigateTo = (page) => {
+  const [pageParams, setPageParams] = useState({});
+
+  const navigateTo = (page, params = {}) => {
     const authRequiredPages = ['request', 'my-requests', 'settings'];
     if (authRequiredPages.includes(page) && !isAuthed) {
       alert('Чтобы продолжить, войдите или зарегистрируйтесь.');
@@ -88,7 +91,23 @@ const App = () => {
       return;
     }
     setCurrentPage(page);
+    setPageParams(params);
   };
+
+  // ... (rest of code)
+
+  {
+    currentPage === 'request' && (
+      <RequestPage
+        onNavigate={navigateTo}
+        categories={categories}
+        setQuotes={setQuotes}
+        setAllRequests={setAllRequests}
+        allRequests={allRequests}
+        initialProviderId={pageParams.providerId}
+      />
+    )
+  }
 
   const handleAuthed = () => {
     setIsAuthed(true);
@@ -105,8 +124,8 @@ const App = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
-          <div 
-            className="flex items-center cursor-pointer group" 
+          <div
+            className="flex items-center cursor-pointer group"
             onClick={() => navigateTo('home')}
           >
             <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
@@ -116,7 +135,7 @@ const App = () => {
               FindPro
             </span>
           </div>
-          
+
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-1">
             {[
@@ -130,11 +149,10 @@ const App = () => {
                 <button
                   key={item.key}
                   onClick={() => navigateTo(item.key)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    currentPage === item.key
-                      ? 'bg-blue-50 text-blue-600'
-                      : 'text-gray-700 hover:bg-gray-50'
-                  }`}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${currentPage === item.key
+                    ? 'bg-blue-50 text-blue-600'
+                    : 'text-gray-700 hover:bg-gray-50'
+                    }`}
                 >
                   {item.label}
                 </button>
@@ -146,14 +164,14 @@ const App = () => {
           <div className="hidden md:flex items-center space-x-4">
             {!isAuthed ? (
               <>
-                <button 
-                  onClick={() => setAuthOpen(true)} 
+                <button
+                  onClick={() => setAuthOpen(true)}
                   className="px-4 py-2 text-blue-600 hover:text-blue-700 font-medium transition-colors"
                 >
                   Войти
                 </button>
-                <button 
-                  onClick={() => setAuthOpen(true)} 
+                <button
+                  onClick={() => setAuthOpen(true)}
                   className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 font-medium shadow-md hover:shadow-lg transition-all"
                 >
                   Регистрация
@@ -216,8 +234,8 @@ const App = () => {
           </div>
 
           {/* Mobile Menu Button */}
-          <button 
-            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors" 
+          <button
+            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -239,21 +257,20 @@ const App = () => {
               return (
                 <button
                   key={item.key}
-                  onClick={() => { 
-                    navigateTo(item.key); 
-                    setMobileMenuOpen(false); 
+                  onClick={() => {
+                    navigateTo(item.key);
+                    setMobileMenuOpen(false);
                   }}
-                  className={`block w-full text-left px-4 py-3 rounded-lg font-medium transition-all ${
-                    currentPage === item.key
-                      ? 'bg-blue-50 text-blue-600'
-                      : 'text-gray-700 hover:bg-gray-50'
-                  }`}
+                  className={`block w-full text-left px-4 py-3 rounded-lg font-medium transition-all ${currentPage === item.key
+                    ? 'bg-blue-50 text-blue-600'
+                    : 'text-gray-700 hover:bg-gray-50'
+                    }`}
                 >
                   {item.label}
                 </button>
               );
             })}
-            
+
             {!isAuthed ? (
               <>
                 <button
@@ -312,16 +329,16 @@ const App = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
-      
+
       <main className="flex-1">
         {currentPage === 'home' && (
-          <HomePage 
-            onNavigate={navigateTo} 
+          <HomePage
+            onNavigate={navigateTo}
             categories={categories}
           />
         )}
         {currentPage === 'request' && (
-          <RequestPage 
+          <RequestPage
             onNavigate={navigateTo}
             categories={categories}
             setQuotes={setQuotes}
@@ -331,28 +348,34 @@ const App = () => {
         )}
         {currentPage === 'quotes' && <QuotesPage />}
         {currentPage === 'my-requests' && (
-          <MyRequestsPage 
+          <MyRequestsPage
             onNavigate={navigateTo}
             allRequests={allRequests}
             setAllRequests={setAllRequests}
           />
         )}
         {currentPage === 'providers' && (
-          <ProvidersPage 
+          <ProvidersPage
             onNavigate={navigateTo}
           />
         )}
+        {currentPage === 'admin' && (
+          <AdminPage
+            onNavigate={navigateTo}
+            categories={categories}
+          />
+        )}
         {currentPage === 'settings' && (
-          <AccountSettingsPage 
+          <AccountSettingsPage
             currentUser={currentUser}
             onLogout={handleLogout}
             onAccountDeleted={handleAccountDeleted}
           />
         )}
       </main>
-      
+
       <Footer />
-      
+
       <AuthModal
         open={authOpen}
         onClose={() => setAuthOpen(false)}

@@ -2,18 +2,29 @@ import React, { useState } from 'react';
 import { ArrowLeft, Send } from 'lucide-react';
 import api from '../services/api';
 
-const RequestPage = ({ onNavigate, categories, setQuotes, setAllRequests, allRequests }) => {
+const RequestPage = ({ onNavigate, categories, setQuotes, setAllRequests, allRequests, initialProviderId }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     category_id: '',
+    price: '',
+    provider_id: initialProviderId || '',
+    latitude: '',
+    longitude: '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    if (!api.isAuthenticated()) {
+      alert('Для создания заявки необходимо войти в систему');
+      onNavigate('home');
+    }
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.title || !formData.description || !formData.category_id) {
       setError('Пожалуйста, заполните все поля');
       return;
@@ -23,24 +34,26 @@ const RequestPage = ({ onNavigate, categories, setQuotes, setAllRequests, allReq
     setError('');
 
     try {
-      const response = await api.createRequest({
+      const requestData = {
         title: formData.title,
         description: formData.description,
         category_id: parseInt(formData.category_id),
-      });
+        provider_id: formData.provider_id ? parseInt(formData.provider_id) : null,
+        price: formData.price ? parseFloat(formData.price) : null,
+        latitude: formData.latitude ? parseFloat(formData.latitude) : null,
+        longitude: formData.longitude ? parseFloat(formData.longitude) : null,
+      };
+
+      const response = await api.createRequest(requestData);
 
       // Обновляем список заявок
       setAllRequests([...allRequests, response.data]);
-      
-      // Получаем предложения для новой заявки
-      const quotesRes = await api.getQuotes({ request_id: response.data.id });
-      setQuotes(quotesRes.data);
-      
-      // Переходим на страницу с предложениями
+
+      // Переходим на страницу с моими заявками
       onNavigate('my-requests');
-      
+
       // Показываем уведомление
-      alert('Заявка успешно создана! Ожидайте предложений от специалистов.');
+      alert('Заявка успешно создана!');
     } catch (error) {
       console.error('Error creating request:', error);
       if (error.response?.status === 401) {
@@ -75,7 +88,7 @@ const RequestPage = ({ onNavigate, categories, setQuotes, setAllRequests, allReq
         <div className="bg-white rounded-lg shadow-lg p-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Создать заявку</h1>
           <p className="text-gray-600 mb-8">
-            Опишите вашу задачу, и специалисты пришлют вам свои предложения
+            {initialProviderId ? 'Заполните детали заявки для выбранного специалиста' : 'Опишите вашу задачу, и специалисты пришлют вам свои предложения'}
           </p>
 
           {error && (
@@ -133,9 +146,45 @@ const RequestPage = ({ onNavigate, categories, setQuotes, setAllRequests, allReq
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               />
-              <p className="mt-2 text-sm text-gray-500">
-                Чем подробнее описание, тем точнее будут предложения специалистов
-              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Бюджет (сум)
+                </label>
+                <input
+                  type="number"
+                  name="price"
+                  value={formData.price}
+                  onChange={handleChange}
+                  placeholder="Например: 1000000"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Местоположение (координаты для демо)
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    name="latitude"
+                    value={formData.latitude}
+                    onChange={handleChange}
+                    placeholder="Lat"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <input
+                    type="text"
+                    name="longitude"
+                    value={formData.longitude}
+                    onChange={handleChange}
+                    placeholder="Lon"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="flex gap-4">
@@ -162,14 +211,6 @@ const RequestPage = ({ onNavigate, categories, setQuotes, setAllRequests, allReq
               </button>
             </div>
           </form>
-        </div>
-
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h3 className="font-semibold text-blue-900 mb-2">💡 Совет</h3>
-          <p className="text-blue-800 text-sm">
-            Укажите желаемые сроки выполнения работы и ваш бюджет - это поможет специалистам
-            сделать более точные предложения.
-          </p>
         </div>
       </div>
     </div>

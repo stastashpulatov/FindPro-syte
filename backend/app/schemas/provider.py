@@ -11,7 +11,11 @@ class ProviderBase(BaseModel):
     description: Optional[str] = None
     service_area: Optional[str] = None
     is_verified: bool = False
-    rating: int = 0
+    rating: float = 0.0
+    balance: float = 0.0
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    is_available: bool = True
 
 # Properties to receive on provider creation
 class ProviderCreate(ProviderBase):
@@ -23,7 +27,11 @@ class ProviderUpdate(ProviderBase):
     description: Optional[str] = None
     service_area: Optional[str] = None
     is_verified: Optional[bool] = None
-    rating: Optional[int] = None
+    rating: Optional[float] = None
+    balance: Optional[float] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    is_available: Optional[bool] = None
 
 # Properties shared by models stored in DB
 class ProviderInDBBase(ProviderBase):

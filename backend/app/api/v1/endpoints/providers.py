@@ -1,6 +1,7 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import func
 
 from app import models, schemas
 from app.db.session import get_db
@@ -14,10 +15,13 @@ def read_providers(
     limit: int = 100,
     is_verified: Optional[bool] = None,
     category_id: Optional[int] = None,
+    sort_by: Optional[str] = None,  # rating, distance
+    lat: Optional[float] = None,
+    lon: Optional[float] = None,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_active_user)
 ):
-    """Retrieve providers with optional filtering"""
+    """Retrieve providers with optional filtering and sorting"""
     query = db.query(models.Provider)
     
     if is_verified is not None:
@@ -26,6 +30,19 @@ def read_providers(
     if category_id:
         query = query.join(models.ProviderService).filter(
             models.ProviderService.category_id == category_id
+        )
+        
+    # Sorting
+    if sort_by == "rating":
+        query = query.order_by(models.Provider.rating.desc())
+    elif sort_by == "availability":
+        query = query.order_by(models.Provider.is_available.desc())
+    elif sort_by == "distance" and lat is not None and lon is not None:
+        # Simple Euclidean distance approximation for sorting
+        # In production, use PostGIS or proper Haversine formula
+        query = query.order_by(
+            func.power(models.Provider.latitude - lat, 2) + 
+            func.power(models.Provider.longitude - lon, 2)
         )
     
     return query.offset(skip).limit(limit).all()

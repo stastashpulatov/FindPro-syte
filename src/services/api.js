@@ -11,12 +11,12 @@ const getApiUrl = () => {
   if (typeof window !== 'undefined') {
     const protocol = window.location.protocol;
     const hostname = window.location.hostname;
-    
+
     // Для локальной разработки
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
       return 'http://localhost:8000/api/v1';
     }
-    
+
     // Для production (coolbola.uz)
     return `${protocol}//${hostname}/api/v1`;
   }
@@ -46,10 +46,10 @@ axiosInstance.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
+
     // Логируем для отладки
     console.log('📤 Request:', config.method.toUpperCase(), config.url);
-    
+
     return config;
   },
   (error) => {
@@ -79,15 +79,15 @@ axiosInstance.interceptors.response.use(
       originalRequest._retry = true;
 
       // Если это запрос логина/регистрации - не пытаемся обновить токен
-      if (originalRequest.url?.includes('/auth/login') || 
-          originalRequest.url?.includes('/auth/register')) {
+      if (originalRequest.url?.includes('/auth/login') ||
+        originalRequest.url?.includes('/auth/register')) {
         return Promise.reject(error);
       }
 
       // Очищаем токен и редиректим
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      
+
       return Promise.reject(error);
     }
 
@@ -97,7 +97,7 @@ axiosInstance.interceptors.response.use(
 
 const api = {
   // ==================== Auth ====================
-  
+
   login: (data) => {
     const headers = {};
     if (typeof URLSearchParams !== 'undefined' && data instanceof URLSearchParams) {
@@ -114,15 +114,15 @@ const api = {
     return Promise.resolve();
   },
 
-  recoverPassword: (email) => 
+  recoverPassword: (email) =>
     axiosInstance.post(`/auth/password-recovery/${email}`),
 
   // ==================== Users ====================
-  
+
   getCurrentUser: () => axiosInstance.get('/users/me'),
 
   updateCurrentUser: (data) => axiosInstance.put('/users/me', data),
-  
+
   deleteAccount: () => axiosInstance.delete('/users/me'),
 
   getAllUsers: (params) => axiosInstance.get('/users', { params }),
@@ -130,7 +130,7 @@ const api = {
   getUserById: (id) => axiosInstance.get(`/users/${id}`),
 
   // ==================== Requests ====================
-  
+
   getRequests: (params) => axiosInstance.get('/requests', { params }),
 
   createRequest: (data) => axiosInstance.post('/requests', data),
@@ -141,8 +141,10 @@ const api = {
 
   deleteRequest: (id) => axiosInstance.delete(`/requests/${id}`),
 
+  completeRequest: (id) => axiosInstance.put(`/requests/${id}/complete`),
+
   // ==================== Providers ====================
-  
+
   getProviders: (params) => axiosInstance.get('/providers', { params }),
 
   getProviderById: (id) => axiosInstance.get(`/providers/${id}`),
@@ -155,8 +157,12 @@ const api = {
 
   deleteProvider: (id) => axiosInstance.delete(`/providers/${id}`),
 
+  // ==================== Reviews ====================
+
+  createReview: (data) => axiosInstance.post('/reviews', data),
+
   // ==================== Quotes ====================
-  
+
   getQuotes: (params) => axiosInstance.get('/quotes', { params }),
 
   createQuote: (data) => axiosInstance.post('/quotes', data),
@@ -170,7 +176,7 @@ const api = {
   rejectQuote: (id) => axiosInstance.post(`/quotes/${id}/reject`),
 
   // ==================== Categories ====================
-  
+
   getCategories: (params) => axiosInstance.get('/categories', { params }),
 
   getCategoryById: (id) => axiosInstance.get(`/categories/${id}`),
@@ -182,7 +188,7 @@ const api = {
   deleteCategory: (id) => axiosInstance.delete(`/categories/${id}`),
 
   // ==================== Helpers ====================
-  
+
   isAuthenticated: () => {
     return !!localStorage.getItem('token');
   },
@@ -201,8 +207,8 @@ const api = {
   },
 
   // ==================== Health Check ====================
-  
-  healthCheck: () => axiosInstance.get('/health').catch(() => 
+
+  healthCheck: () => axiosInstance.get('/health').catch(() =>
     axios.get(`${API_URL.replace('/api/v1', '')}/health`)
   ),
 };

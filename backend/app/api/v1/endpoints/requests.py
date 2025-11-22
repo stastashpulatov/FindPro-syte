@@ -1,6 +1,7 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import func
 
 from app import models, schemas
 from app.db.session import get_db
@@ -43,6 +44,12 @@ def create_request(
     if not category:
         raise HTTPException(status_code=400, detail="Invalid category ID")
     
+    # Check if provider exists if specified
+    if request.provider_id:
+        provider = db.query(models.Provider).filter(models.Provider.id == request.provider_id).first()
+        if not provider:
+            raise HTTPException(status_code=400, detail="Invalid provider ID")
+
     db_request = models.Request(
         **request.dict(),
         user_id=current_user.id
@@ -112,3 +119,40 @@ def delete_request(
     db.delete(db_request)
     db.commit()
     return {"msg": "Request deleted successfully"}
+
+@router.put("/{request_id}/complete", response_model=schemas.Request)
+def complete_request(
+    request_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_active_user)
+):
+    """Mark a request as completed and transfer funds to provider"""
+    db_request = db.query(models.Request).filter(models.Request.id == request_id).first()
+    if not db_request:
+        raise HTTPException(status_code=404, detail="Request not found")
+    
+    # Only the user who created the request can complete it
+    if db_request.user_id != current_user.id and not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+        
+    if db_request.status == models.RequestStatus.COMPLETED:
+        raise HTTPException(status_code=400, detail="Request already completed")
+        
+    if not db_request.provider_id:
+        raise HTTPException(status_code=400, detail="No provider assigned to this request")
+        
+    # Update request status
+    db_request.status = models.RequestStatus.COMPLETED
+    db_request.completed_at = func.now()
+    
+    # Add funds to provider balance
+    if db_request.price:
+        provider = db.query(models.Provider).filter(models.Provider.id == db_request.provider_id).first()
+        if provider:
+            provider.balance += db_request.price
+            db.add(provider)
+            
+    db.add(db_request)
+    db.commit()
+    db.refresh(db_request)
+    return db_request

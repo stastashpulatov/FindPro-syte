@@ -15,6 +15,10 @@ class RequestBase(BaseModel):
     description: Optional[str] = None
     status: RequestStatus = RequestStatus.PENDING
     category_id: int
+    provider_id: Optional[int] = None
+    price: Optional[float] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
 
 # Properties to receive on request creation
 class RequestCreate(RequestBase):
@@ -26,11 +30,21 @@ class RequestUpdate(BaseModel):
     description: Optional[str] = None
     status: Optional[RequestStatus] = None
     category_id: Optional[int] = None
+    provider_id: Optional[int] = None
+    price: Optional[float] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    completed_at: Optional[datetime] = None
 
 # Properties shared by models stored in DB
 class RequestInDBBase(RequestBase):
     id: int
     user_id: int
+    provider_id: Optional[int] = None
+    price: Optional[float] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    completed_at: Optional[datetime] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
     

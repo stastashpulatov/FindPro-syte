@@ -18,7 +18,12 @@ class Request(Base):
     description = Column(Text, nullable=True)
     status = Column(Enum(RequestStatus), default=RequestStatus.PENDING)
     user_id = Column(Integer, ForeignKey("users.id"))
+    provider_id = Column(Integer, ForeignKey("providers.id"), nullable=True)
     category_id = Column(Integer, ForeignKey("categories.id"))
+    price = Column(Float, nullable=True)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+    completed_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     

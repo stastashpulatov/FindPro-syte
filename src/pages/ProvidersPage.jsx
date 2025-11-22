@@ -6,15 +6,26 @@ const ProvidersPage = ({ onNavigate }) => {
   const [providers, setProviders] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [sortBy, setSortBy] = useState('rating'); // rating, availability, distance
+  const [userLocation, setUserLocation] = useState({ lat: null, lon: null });
+
+  useEffect(() => {
+    // Mock getting user location for demo
+    setUserLocation({ lat: 41.2995, lon: 69.2401 }); // Tashkent
+  }, []);
 
   useEffect(() => {
     loadProviders();
-  }, [selectedCategory]);
+  }, [selectedCategory, sortBy]);
 
   const loadProviders = async () => {
     setIsLoading(true);
     try {
-      const params = selectedCategory ? { category_id: selectedCategory } : {};
+      const params = {
+        ...(selectedCategory ? { category_id: selectedCategory } : {}),
+        sort_by: sortBy,
+        ...(sortBy === 'distance' && userLocation.lat ? { lat: userLocation.lat, lon: userLocation.lon } : {})
+      };
       const response = await api.getProviders(params);
       setProviders(response.data);
     } catch (error) {
@@ -31,10 +42,10 @@ const ProvidersPage = ({ onNavigate }) => {
           <Star
             key={i}
             size={16}
-            className={i < rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}
+            className={i < Math.round(rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}
           />
         ))}
-        <span className="ml-1 text-sm text-gray-600">({rating})</span>
+        <span className="ml-1 text-sm text-gray-600">({rating ? rating.toFixed(1) : '0.0'})</span>
       </div>
     );
   };
@@ -53,11 +64,25 @@ const ProvidersPage = ({ onNavigate }) => {
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Наши специалисты</h1>
-          <p className="text-gray-600">
-            Проверенные профессионалы готовы помочь вам с вашими задачами
-          </p>
+        <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Наши специалисты</h1>
+            <p className="text-gray-600">
+              Проверенные профессионалы готовы помочь вам с вашими задачами
+            </p>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="rating">По рейтингу</option>
+              <option value="availability">По доступности</option>
+              <option value="distance">По удаленности</option>
+            </select>
+          </div>
         </div>
 
         {providers.length === 0 ? (
@@ -109,21 +134,19 @@ const ProvidersPage = ({ onNavigate }) => {
                       <span>{provider.service_area}</span>
                     </div>
                   )}
-                  {provider.services && provider.services.length > 0 && (
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Briefcase size={16} />
-                      <span>{provider.services.length} услуг</span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <span className={`w-2 h-2 rounded-full ${provider.is_available ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                    <span>{provider.is_available ? 'Свободен' : 'Занят'}</span>
+                  </div>
                 </div>
 
                 {renderRating(provider.rating || 0)}
 
                 <button
-                  onClick={() => onNavigate('request')}
+                  onClick={() => onNavigate('request', { providerId: provider.id })}
                   className="w-full mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
                 >
-                  Отправить заявку
+                  Нанять
                 </button>
               </div>
             ))}
