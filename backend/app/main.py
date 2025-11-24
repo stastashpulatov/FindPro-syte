@@ -42,6 +42,12 @@ if FRONTEND_BUILD_DIR and FRONTEND_BUILD_DIR.exists():
 # Setup Admin Panel
 setup_admin(app, engine)
 
+# Initialize DB data
+from .db.init_data import init
+init()
+
+from starlette.middleware.sessions import SessionMiddleware
+
 # Set up CORS
 app.add_middleware(
     CORSMiddleware,
@@ -50,6 +56,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Add Session Middleware for Admin Panel
+app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
 
 # Include API router
 app.include_router(api_router, prefix=settings.API_V1_STR)

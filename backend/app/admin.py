@@ -139,12 +139,52 @@ class ServiceAdmin(ModelView, model=ProviderService):
     can_view_details = True
 
 
+from sqladmin.authentication import AuthenticationBackend
+from starlette.requests import Request
+from starlette.responses import RedirectResponse
+from app.core.security import verify_password
+from app.db.session import SessionLocal
+
+class AdminAuth(AuthenticationBackend):
+    async def login(self, request: Request) -> bool:
+        form = await request.form()
+        email = form.get("username")
+        password = form.get("password")
+
+        db = SessionLocal()
+        user = db.query(User).filter(User.email == email).first()
+        db.close()
+
+        if not user or not verify_password(password, user.hashed_password):
+            return False
+            
+        if not user.is_superuser:
+            return False
+
+        request.session.update({"token": str(user.id)})
+        return True
+
+    async def logout(self, request: Request) -> bool:
+        request.session.clear()
+        return True
+
+    async def authenticate(self, request: Request) -> bool:
+        token = request.session.get("token")
+        if not token:
+            return False
+        return True
+
 def setup_admin(app, engine):
     """Setup SQLAdmin with all model views"""
+    from app.core.config import settings
+    
+    authentication_backend = AdminAuth(secret_key=settings.SECRET_KEY)
+    
     admin = Admin(
         app=app, 
         engine=engine,
-        title="FindPro Admin"
+        title="FindPro Admin",
+        authentication_backend=authentication_backend
     )
     
     # Register all model views

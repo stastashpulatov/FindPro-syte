@@ -25,3 +25,7 @@ class User(Base):
     
     def __repr__(self):
         return f"<User {self.email}>"
+
+    @property
+    def is_provider(self):
+        return self.provider is not None

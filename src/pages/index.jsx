@@ -5,6 +5,7 @@ export { default as MyRequestsPage } from './MyRequestsPage';
 export { default as ProvidersPage } from './ProvidersPage';
 export { default as AccountSettingsPage } from './AccountSettingsPage';
 export { default as AdminPage } from './AdminPage';
+export { default as WorkerDashboardPage } from './WorkerDashboardPage';
 
 // Quotes Page Component (simple placeholder)
 export const QuotesPage = () => (

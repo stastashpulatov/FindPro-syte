@@ -2,6 +2,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
+from sqlalchemy import or_
 
 from app import models, schemas
 from app.db.session import get_db
@@ -28,7 +29,15 @@ def read_requests(
     
     # Regular users can only see their own requests
     if not current_user.is_superuser:
-        query = query.filter(models.Request.user_id == current_user.id)
+        if current_user.is_provider:
+            query = query.filter(
+                or_(
+                    models.Request.user_id == current_user.id,
+                    models.Request.provider_id == current_user.provider.id
+                )
+            )
+        else:
+            query = query.filter(models.Request.user_id == current_user.id)
     
     return query.offset(skip).limit(limit).all()
 

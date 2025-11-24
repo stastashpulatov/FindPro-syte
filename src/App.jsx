@@ -10,6 +10,7 @@ import {
   ProvidersPage,
   AccountSettingsPage,
   AdminPage,
+  WorkerDashboardPage,
   Footer
 } from './pages';
 
@@ -47,6 +48,7 @@ const App = () => {
       const { data } = await api.getCurrentUser();
       setCurrentUser(data);
       api.setStoredUser(data);
+      return data;
     } catch (error) {
       console.error('Error loading user:', error);
     }
@@ -90,6 +92,10 @@ const App = () => {
       setAuthOpen(true);
       return;
     }
+    if (page === 'admin' && (!isAuthed || !currentUser?.is_superuser)) {
+      alert('Доступ запрещен. Требуются права администратора.');
+      return;
+    }
     setCurrentPage(page);
     setPageParams(params);
   };
@@ -109,13 +115,19 @@ const App = () => {
     )
   }
 
-  const handleAuthed = () => {
+  const handleAuthed = async () => {
     setIsAuthed(true);
     setAuthOpen(false);
-    loadCurrentUser();
+    const user = await loadCurrentUser();
     if (pendingPage) {
       setCurrentPage(pendingPage);
       setPendingPage(null);
+    } else if (user) {
+      if (user.is_superuser) {
+        navigateTo('admin');
+      } else if (user.is_provider) {
+        navigateTo('worker-dashboard');
+      }
     }
   };
 
@@ -140,11 +152,15 @@ const App = () => {
           <nav className="hidden md:flex space-x-1">
             {[
               { key: 'home', label: 'Главная' },
+              { key: 'worker-dashboard', label: 'Задачи', providerOnly: true },
               { key: 'my-requests', label: 'Мои заявки', authRequired: true },
               { key: 'providers', label: 'Специалисты' },
               { key: 'settings', label: 'Настройки', authRequired: true },
+              { key: 'admin', label: 'Админ', adminOnly: true },
             ].map((item) => {
               if (item.authRequired && !isAuthed) return null;
+              if (item.adminOnly && (!isAuthed || !currentUser?.is_superuser)) return null;
+              if (item.providerOnly && (!isAuthed || !currentUser?.is_provider)) return null;
               return (
                 <button
                   key={item.key}
@@ -252,8 +268,10 @@ const App = () => {
               { key: 'my-requests', label: 'Мои заявки', authRequired: true },
               { key: 'providers', label: 'Специалисты' },
               { key: 'settings', label: 'Настройки', authRequired: true },
+              { key: 'admin', label: 'Админ', adminOnly: true },
             ].map((item) => {
               if (item.authRequired && !isAuthed) return null;
+              if (item.adminOnly && (!isAuthed || !currentUser?.is_superuser)) return null;
               return (
                 <button
                   key={item.key}
@@ -359,7 +377,7 @@ const App = () => {
             onNavigate={navigateTo}
           />
         )}
-        {currentPage === 'admin' && (
+        {currentPage === 'admin' && currentUser?.is_superuser && (
           <AdminPage
             onNavigate={navigateTo}
             categories={categories}
@@ -370,6 +388,12 @@ const App = () => {
             currentUser={currentUser}
             onLogout={handleLogout}
             onAccountDeleted={handleAccountDeleted}
+          />
+        )}
+        {currentPage === 'worker-dashboard' && (
+          <WorkerDashboardPage
+            onNavigate={navigateTo}
+            currentUser={currentUser}
           />
         )}
       </main>

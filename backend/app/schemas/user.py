@@ -8,6 +8,7 @@ class UserBase(BaseModel):
     full_name: Optional[str] = None
     is_active: bool = True
     is_superuser: bool = False
+    is_provider: bool = False
 
 # Properties to receive via API on creation
 class UserCreate(UserBase):
