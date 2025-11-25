@@ -1,0 +1,50 @@
+{% extends "sqladmin/layout.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Дашборд</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-header">Пользователи</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ user_count }}</h5>
+                    <p class="card-text">Всего зарегистрировано</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-header">Специалисты</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ provider_count }}</h5>
+                    <p class="card-text">Активных специалистов</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info mb-3">
+                <div class="card-header">Заявки</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ request_count }}</h5>
+                    <p class="card-text">Всего заявок</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-header">Ожидают</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ pending_requests }}</h5>
+                    <p class="card-text">Новых заявок</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

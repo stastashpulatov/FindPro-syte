@@ -58,7 +58,9 @@ app.add_middleware(
 )
 
 # Add Session Middleware for Admin Panel
-app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
+# max_age=3600 ensures session expires after 1 hour of inactivity
+# same_site="lax" and https_only=False (for dev) are standard defaults but good to be explicit if needed
+app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY, max_age=3600)
 
 # Include API router
 app.include_router(api_router, prefix=settings.API_V1_STR)

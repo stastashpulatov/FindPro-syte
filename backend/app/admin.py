@@ -1,10 +1,38 @@
-from sqladmin import Admin, ModelView
+from sqladmin import Admin, ModelView, BaseView, expose, action
 from app.models.user import User
 from app.models.provider import Provider
 from app.models.category import Category
 from app.models.request import Request
 from app.models.quote import Quote
 from app.models.service import ProviderService
+from sqlalchemy import func
+
+
+class DashboardView(BaseView):
+    name = "Дашборд"
+    icon = "fa-solid fa-chart-line"
+
+    @expose("/dashboard", methods=["GET"])
+    async def dashboard(self, request):
+        db = SessionLocal()
+        try:
+            user_count = db.query(User).count()
+            provider_count = db.query(Provider).count()
+            request_count = db.query(Request).count()
+            pending_requests = db.query(Request).filter(Request.status == "pending").count()
+            
+            return await self.templates.TemplateResponse(
+                request, 
+                "dashboard.html", 
+                context={
+                    "user_count": user_count,
+                    "provider_count": provider_count,
+                    "request_count": request_count,
+                    "pending_requests": pending_requests
+                }
+            )
+        finally:
+            db.close()
 
 
 class UserAdmin(ModelView, model=User):
@@ -23,6 +51,48 @@ class UserAdmin(ModelView, model=User):
     can_edit = True
     can_delete = True
     can_view_details = True
+
+    @action(
+        name="ban_user",
+        label="Заблокировать",
+        confirmation_message="Вы уверены, что хотите заблокировать выбранных пользователей?",
+        add_in_detail=True,
+        add_in_list=True
+    )
+    async def ban_user(self, request: Request):
+        pks = request.query_params.get("pks", "").split(",")
+        if pks:
+            db = SessionLocal()
+            try:
+                for pk in pks:
+                    model = db.query(User).get(int(pk))
+                    if model:
+                        model.is_active = False
+                db.commit()
+            finally:
+                db.close()
+        return RedirectResponse(request.url_for("admin:list", identity="user"), status_code=302)
+
+    @action(
+        name="activate_user",
+        label="Активировать",
+        confirmation_message="Активировать выбранных пользователей?",
+        add_in_detail=True,
+        add_in_list=True
+    )
+    async def activate_user(self, request: Request):
+        pks = request.query_params.get("pks", "").split(",")
+        if pks:
+            db = SessionLocal()
+            try:
+                for pk in pks:
+                    model = db.query(User).get(int(pk))
+                    if model:
+                        model.is_active = True
+                db.commit()
+            finally:
+                db.close()
+        return RedirectResponse(request.url_for("admin:list", identity="user"), status_code=302)
 
 
 class ProviderAdmin(ModelView, model=Provider):
@@ -89,6 +159,27 @@ class RequestAdmin(ModelView, model=Request):
     can_delete = True
     can_view_details = True
 
+    @action(
+        name="cancel_request",
+        label="Отменить заявку",
+        confirmation_message="Вы уверены, что хотите отменить выбранные заявки?",
+        add_in_detail=True,
+        add_in_list=True
+    )
+    async def cancel_request(self, request: Request):
+        pks = request.query_params.get("pks", "").split(",")
+        if pks:
+            db = SessionLocal()
+            try:
+                for pk in pks:
+                    model = db.query(Request).get(int(pk))
+                    if model:
+                        model.status = "cancelled"
+                db.commit()
+            finally:
+                db.close()
+        return RedirectResponse(request.url_for("admin:list", identity="request"), status_code=302)
+
 
 class QuoteAdmin(ModelView, model=Quote):
     name = "Предложение"
@@ -152,17 +243,20 @@ class AdminAuth(AuthenticationBackend):
         password = form.get("password")
 
         db = SessionLocal()
-        user = db.query(User).filter(User.email == email).first()
-        db.close()
-
-        if not user or not verify_password(password, user.hashed_password):
-            return False
+        try:
+            user = db.query(User).filter(User.email == email).first()
             
-        if not user.is_superuser:
-            return False
+            if not user or not verify_password(password, user.hashed_password):
+                return False
+                
+            if not user.is_superuser:
+                return False
 
-        request.session.update({"token": str(user.id)})
-        return True
+            # Store user ID in session
+            request.session.update({"token": str(user.id)})
+            return True
+        finally:
+            db.close()
 
     async def logout(self, request: Request) -> bool:
         request.session.clear()
@@ -172,7 +266,21 @@ class AdminAuth(AuthenticationBackend):
         token = request.session.get("token")
         if not token:
             return False
-        return True
+            
+        # Verify user still exists and is superuser
+        # This ensures that if a user is banned/demoted, they lose access immediately
+        db = SessionLocal()
+        try:
+            user = db.query(User).filter(User.id == int(token)).first()
+            if not user or not user.is_active or not user.is_superuser:
+                # Invalid user, clear session
+                request.session.clear()
+                return False
+            return True
+        except Exception:
+            return False
+        finally:
+            db.close()
 
 def setup_admin(app, engine):
     """Setup SQLAdmin with all model views"""
@@ -184,10 +292,12 @@ def setup_admin(app, engine):
         app=app, 
         engine=engine,
         title="FindPro Admin",
-        authentication_backend=authentication_backend
+        authentication_backend=authentication_backend,
+        templates_dir="app/templates" # Ensure we can load custom templates
     )
     
     # Register all model views
+    admin.add_view(DashboardView) # Register Dashboard
     admin.add_view(UserAdmin)
     admin.add_view(ProviderAdmin)
     admin.add_view(CategoryAdmin)

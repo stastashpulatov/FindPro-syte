@@ -29,11 +29,20 @@ def read_quotes(
         query = query.filter(models.Quote.status == status)
     
     # Regular users can only see quotes for their own requests
-    if not current_user.is_superuser and not current_user.provider:
-        query = query.join(models.Request).filter(models.Request.user_id == current_user.id)
-    # Providers can only see their own quotes
-    elif current_user.provider and not current_user.is_superuser:
-        query = query.filter(models.Quote.provider_id == current_user.provider.id)
+    if not current_user.is_superuser:
+        if current_user.provider:
+            # If user is a provider, they can see:
+            # 1. Quotes they created (provider_id == current_user.provider.id)
+            # 2. Quotes for requests they created (request.user_id == current_user.id)
+            query = query.join(models.Request).filter(
+                or_(
+                    models.Quote.provider_id == current_user.provider.id,
+                    models.Request.user_id == current_user.id
+                )
+            )
+        else:
+            # Regular customer
+            query = query.join(models.Request).filter(models.Request.user_id == current_user.id)
     
     return query.offset(skip).limit(limit).all()
 

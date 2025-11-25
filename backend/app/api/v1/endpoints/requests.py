@@ -30,10 +30,15 @@ def read_requests(
     # Regular users can only see their own requests
     if not current_user.is_superuser:
         if current_user.is_provider:
+            # Providers can see:
+            # 1. Requests they created (user_id == current_user.id)
+            # 2. Requests assigned to them (provider_id == current_user.provider.id)
+            # 3. Open requests (provider_id is None) - for "Find Work"
             query = query.filter(
                 or_(
                     models.Request.user_id == current_user.id,
-                    models.Request.provider_id == current_user.provider.id
+                    models.Request.provider_id == current_user.provider.id,
+                    models.Request.provider_id == None
                 )
             )
         else:

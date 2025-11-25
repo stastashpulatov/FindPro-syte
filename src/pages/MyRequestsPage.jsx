@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, CheckCircle, Star } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Star, MessageSquare, X } from 'lucide-react';
 import api from '../services/api';
+import QuotesList from '../components/QuotesList';
+import Loader from '../components/Loader';
+import toast from 'react-hot-toast';
 
 const MyRequestsPage = ({ onNavigate }) => {
   const [requests, setRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [quotesModalOpen, setQuotesModalOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [reviewData, setReviewData] = useState({ rating: 5, comment: '' });
 
@@ -20,6 +24,7 @@ const MyRequestsPage = ({ onNavigate }) => {
       setRequests(response.data);
     } catch (error) {
       console.error('Error loading requests:', error);
+      toast.error('Не удалось загрузить заявки');
     } finally {
       setIsLoading(false);
     }
@@ -34,9 +39,10 @@ const MyRequestsPage = ({ onNavigate }) => {
       loadRequests();
       setSelectedRequest(request);
       setReviewModalOpen(true);
+      toast.success('Заявка завершена!');
     } catch (error) {
       console.error('Error completing request:', error);
-      alert('Ошибка при завершении заявки');
+      toast.error('Ошибка при завершении заявки');
     }
   };
 
@@ -48,12 +54,12 @@ const MyRequestsPage = ({ onNavigate }) => {
         rating: reviewData.rating,
         comment: reviewData.comment
       });
-      alert('Спасибо за ваш отзыв!');
+      toast.success('Спасибо за ваш отзыв!');
       setReviewModalOpen(false);
       setReviewData({ rating: 5, comment: '' });
     } catch (error) {
       console.error('Error creating review:', error);
-      alert('Ошибка при отправке отзыва');
+      toast.error('Ошибка при отправке отзыва');
     }
   };
 
@@ -91,9 +97,8 @@ const MyRequestsPage = ({ onNavigate }) => {
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Мои заявки</h1>
 
         {isLoading ? (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Загрузка заявок...</p>
+          <div className="py-12">
+            <Loader size="large" />
           </div>
         ) : requests.length === 0 ? (
           <div className="bg-white rounded-lg shadow p-12 text-center">
@@ -108,7 +113,7 @@ const MyRequestsPage = ({ onNavigate }) => {
         ) : (
           <div className="space-y-6">
             {requests.map((request) => (
-              <div key={request.id} className="bg-white rounded-lg shadow p-6">
+              <div key={request.id} className="bg-white rounded-lg shadow p-6 border border-gray-100">
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h3 className="text-xl font-semibold text-gray-900 mb-1">{request.title}</h3>
@@ -130,15 +135,30 @@ const MyRequestsPage = ({ onNavigate }) => {
                     Создано: {new Date(request.created_at).toLocaleDateString()}
                   </div>
 
-                  {request.status !== 'completed' && request.status !== 'cancelled' && request.provider_id && (
-                    <button
-                      onClick={() => handleComplete(request)}
-                      className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
-                    >
-                      <CheckCircle size={16} />
-                      Завершить работу
-                    </button>
-                  )}
+                  <div className="flex gap-3">
+                    {request.status === 'pending' && (
+                      <button
+                        onClick={() => {
+                          setSelectedRequest(request);
+                          setQuotesModalOpen(true);
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 font-medium transition-colors"
+                      >
+                        <MessageSquare size={16} />
+                        Предложения
+                      </button>
+                    )}
+
+                    {request.status !== 'completed' && request.status !== 'cancelled' && request.provider_id && (
+                      <button
+                        onClick={() => handleComplete(request)}
+                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors"
+                      >
+                        <CheckCircle size={16} />
+                        Завершить работу
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -146,10 +166,40 @@ const MyRequestsPage = ({ onNavigate }) => {
         )}
       </div>
 
+      {/* Quotes Modal */}
+      {quotesModalOpen && selectedRequest && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-xl max-w-2xl w-full max-h-[80vh] flex flex-col shadow-2xl">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Предложения специалистов</h2>
+                <p className="text-sm text-gray-500 mt-1">для заявки "{selectedRequest.title}"</p>
+              </div>
+              <button
+                onClick={() => setQuotesModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto">
+              <QuotesList
+                requestId={selectedRequest.id}
+                onQuoteAccepted={() => {
+                  setQuotesModalOpen(false);
+                  loadRequests();
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Review Modal */}
       {reviewModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-md w-full p-6">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-lg max-w-md w-full p-6 shadow-2xl">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Оцените работу</h2>
             <p className="text-gray-600 mb-6">
               Пожалуйста, оцените работу специалиста по заявке "{selectedRequest?.title}"
@@ -162,7 +212,7 @@ const MyRequestsPage = ({ onNavigate }) => {
                     key={star}
                     type="button"
                     onClick={() => setReviewData({ ...reviewData, rating: star })}
-                    className="focus:outline-none"
+                    className="focus:outline-none transition-transform hover:scale-110"
                   >
                     <Star
                       size={32}
