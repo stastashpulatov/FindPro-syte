@@ -1,11 +1,18 @@
 from sqladmin import Admin, ModelView, BaseView, expose, action
+from sqladmin.authentication import AuthenticationBackend
+from starlette.requests import Request as StarletteRequest
+from starlette.responses import RedirectResponse
+from sqlalchemy import func
+from pathlib import Path
+
 from app.models.user import User
 from app.models.provider import Provider
 from app.models.category import Category
 from app.models.request import Request
 from app.models.quote import Quote
 from app.models.service import ProviderService
-from sqlalchemy import func
+from app.db.session import SessionLocal
+from app.core.security import verify_password
 
 
 class DashboardView(BaseView):
@@ -13,7 +20,7 @@ class DashboardView(BaseView):
     icon = "fa-solid fa-chart-line"
 
     @expose("/dashboard", methods=["GET"])
-    async def dashboard(self, request):
+    async def dashboard(self, request: StarletteRequest):
         db = SessionLocal()
         try:
             user_count = db.query(User).count()
@@ -31,6 +38,9 @@ class DashboardView(BaseView):
                     "pending_requests": pending_requests
                 }
             )
+        except Exception as e:
+            print(f"Dashboard Error: {e}")
+            raise e
         finally:
             db.close()
 
@@ -59,7 +69,7 @@ class UserAdmin(ModelView, model=User):
         add_in_detail=True,
         add_in_list=True
     )
-    async def ban_user(self, request: Request):
+    async def ban_user(self, request: StarletteRequest):
         pks = request.query_params.get("pks", "").split(",")
         if pks:
             db = SessionLocal()
@@ -80,7 +90,7 @@ class UserAdmin(ModelView, model=User):
         add_in_detail=True,
         add_in_list=True
     )
-    async def activate_user(self, request: Request):
+    async def activate_user(self, request: StarletteRequest):
         pks = request.query_params.get("pks", "").split(",")
         if pks:
             db = SessionLocal()
@@ -166,7 +176,7 @@ class RequestAdmin(ModelView, model=Request):
         add_in_detail=True,
         add_in_list=True
     )
-    async def cancel_request(self, request: Request):
+    async def cancel_request(self, request: StarletteRequest):
         pks = request.query_params.get("pks", "").split(",")
         if pks:
             db = SessionLocal()
@@ -230,14 +240,8 @@ class ServiceAdmin(ModelView, model=ProviderService):
     can_view_details = True
 
 
-from sqladmin.authentication import AuthenticationBackend
-from starlette.requests import Request
-from starlette.responses import RedirectResponse
-from app.core.security import verify_password
-from app.db.session import SessionLocal
-
 class AdminAuth(AuthenticationBackend):
-    async def login(self, request: Request) -> bool:
+    async def login(self, request: StarletteRequest) -> bool:
         form = await request.form()
         email = form.get("username")
         password = form.get("password")
@@ -258,22 +262,20 @@ class AdminAuth(AuthenticationBackend):
         finally:
             db.close()
 
-    async def logout(self, request: Request) -> bool:
+    async def logout(self, request: StarletteRequest) -> bool:
         request.session.clear()
         return True
 
-    async def authenticate(self, request: Request) -> bool:
+    async def authenticate(self, request: StarletteRequest) -> bool:
         token = request.session.get("token")
         if not token:
             return False
             
         # Verify user still exists and is superuser
-        # This ensures that if a user is banned/demoted, they lose access immediately
         db = SessionLocal()
         try:
             user = db.query(User).filter(User.id == int(token)).first()
             if not user or not user.is_active or not user.is_superuser:
-                # Invalid user, clear session
                 request.session.clear()
                 return False
             return True
@@ -288,16 +290,20 @@ def setup_admin(app, engine):
     
     authentication_backend = AdminAuth(secret_key=settings.SECRET_KEY)
     
+    # Use absolute path for templates
+    current_dir = Path(__file__).parent
+    templates_dir = current_dir / "templates"
+    
     admin = Admin(
         app=app, 
         engine=engine,
         title="FindPro Admin",
         authentication_backend=authentication_backend,
-        templates_dir="app/templates" # Ensure we can load custom templates
+        templates_dir=str(templates_dir)
     )
     
     # Register all model views
-    admin.add_view(DashboardView) # Register Dashboard
+    admin.add_view(DashboardView)
     admin.add_view(UserAdmin)
     admin.add_view(ProviderAdmin)
     admin.add_view(CategoryAdmin)
