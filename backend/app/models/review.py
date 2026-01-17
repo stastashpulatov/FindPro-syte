@@ -17,7 +17,7 @@ class Review(Base):
     # Relationships
     request = relationship("Request")
     provider = relationship("Provider")
-    user = relationship("User")
+    author = relationship("User", back_populates="reviews")
     
     def __repr__(self):
         return f"<Review {self.rating} stars>"

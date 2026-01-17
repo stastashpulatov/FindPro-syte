@@ -17,7 +17,7 @@ def read_user_me(
 
 @router.put("/me", response_model=schemas.User)
 def update_user_me(
-    user_in: schemas.UserUpdate,
+    user_in: schemas.UserUpdateMe,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_active_user)
 ):

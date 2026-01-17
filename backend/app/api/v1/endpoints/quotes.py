@@ -82,6 +82,15 @@ def create_quote(
     
     db_quote = models.Quote(**quote.dict())
     db.add(db_quote)
+    
+    # Create notification for the user
+    notification = models.Notification(
+        user_id=db_request.user_id,
+        title="Новое предложение",
+        message=f"Специалист предложил цену {quote.price} сум за вашу заявку '{db_request.title}'"
+    )
+    db.add(notification)
+    
     db.commit()
     db.refresh(db_quote)
     return db_quote
@@ -162,6 +171,17 @@ def accept_quote(
     ).update({"status": schemas.QuoteStatus.REJECTED})
     
     db.add(db_quote)
+    
+    # Notify provider
+    provider = db.query(models.Provider).filter(models.Provider.id == db_quote.provider_id).first()
+    if provider:
+        notification = models.Notification(
+            user_id=provider.user_id,
+            title="Предложение принято!",
+            message=f"Ваше предложение к заявке '{db_quote.request.title}' принято. Можете приступать к работе."
+        )
+        db.add(notification)
+        
     db.commit()
     db.refresh(db_quote)
     return db_quote

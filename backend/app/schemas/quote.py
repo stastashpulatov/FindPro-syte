@@ -34,7 +34,7 @@ class QuoteInDBBase(QuoteBase):
     updated_at: Optional[datetime] = None
     
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 # Properties to return to client
 class Quote(QuoteInDBBase):

@@ -26,7 +26,7 @@ class CategoryInDBBase(CategoryBase):
     created_at: datetime
     
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 # Properties to return to client
 class Category(CategoryInDBBase):
@@ -37,4 +37,4 @@ class CategoryInDB(CategoryInDBBase):
     pass
 
 # Handle forward references for subcategories
-Category.model_rebuild()
+Category.update_forward_refs()

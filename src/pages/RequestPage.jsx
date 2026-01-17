@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Send } from 'lucide-react';
+import { ArrowLeft, Send, Upload, X, Image as ImageIcon } from 'lucide-react';
 import api from '../services/api';
 
 const RequestPage = ({ onNavigate, categories, setQuotes, setAllRequests, allRequests, initialProviderId }) => {
@@ -11,6 +11,7 @@ const RequestPage = ({ onNavigate, categories, setQuotes, setAllRequests, allReq
     provider_id: initialProviderId || '',
     latitude: '',
     longitude: '',
+    photos: [],
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -42,6 +43,7 @@ const RequestPage = ({ onNavigate, categories, setQuotes, setAllRequests, allReq
         price: formData.price ? parseFloat(formData.price) : null,
         latitude: formData.latitude ? parseFloat(formData.latitude) : null,
         longitude: formData.longitude ? parseFloat(formData.longitude) : null,
+        photos: formData.photos || [],
       };
 
       const response = await api.createRequest(requestData);
@@ -146,6 +148,72 @@ const RequestPage = ({ onNavigate, categories, setQuotes, setAllRequests, allReq
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Фотографии (опционально)
+              </label>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                {formData.photos?.map((photo, idx) => (
+                  <div key={idx} className="relative group aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+                    <img
+                      src={photo.startsWith('http') ? photo : `${api.defaults?.baseURL?.replace('/api/v1', '') || ''}${photo}`}
+                      alt={`Photo ${idx + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newPhotos = [...formData.photos];
+                        newPhotos.splice(idx, 1);
+                        setFormData({ ...formData, photos: newPhotos });
+                      }}
+                      className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+
+                <label className="cursor-pointer border-2 border-dashed border-gray-300 rounded-lg aspect-square flex flex-col items-center justify-center text-gray-500 hover:border-blue-500 hover:text-blue-500 transition-colors bg-gray-50 hover:bg-white">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={async (e) => {
+                      const files = Array.from(e.target.files);
+                      if (files.length === 0) return;
+
+                      setIsLoading(true);
+                      try {
+                        const newPhotos = [...(formData.photos || [])];
+                        // Upload each file
+                        for (const file of files) {
+                          const res = await api.uploadFile(file);
+                          newPhotos.push(res.data.msg);
+                        }
+                        setFormData({ ...formData, photos: newPhotos });
+                      } catch (err) {
+                        console.error("Upload error", err);
+                        alert("Ошибка загрузки фото");
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }}
+                  />
+                  {isLoading ? (
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-current"></div>
+                  ) : (
+                    <>
+                      <Upload size={24} className="mb-2" />
+                      <span className="text-xs">Загрузить</span>
+                    </>
+                  )}
+                </label>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -19,6 +19,8 @@ class User(Base):
     provider = relationship(
         "Provider", back_populates="user", uselist=False, cascade="all, delete-orphan"
     )
+    reviews = relationship("Review", back_populates="author")
+    notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
     requests = relationship(
         "Request", back_populates="user", cascade="all, delete-orphan"
     )

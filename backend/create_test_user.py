@@ -1,14 +1,22 @@
 """
-Script to create a test user for development
+Script to create test users for development
 """
+import sys
 from app.db.session import SessionLocal
-from app.models import User, Category
+from app.models import User
 from app.core.security import get_password_hash
 
-def create_test_data():
+def create_test_users():
     db = SessionLocal()
     
     try:
+        print("=" * 60)
+        print("FindPro Test Users Creation")
+        print("=" * 60)
+        
+        created = 0
+        skipped = 0
+        
         # Create test user
         test_user = db.query(User).filter(User.email == "test@example.com").first()
         if not test_user:
@@ -20,9 +28,11 @@ def create_test_data():
                 is_superuser=False
             )
             db.add(test_user)
-            print("✅ Created test user: test@example.com / password123")
+            print("\n✓ Created test user: test@example.com")
+            created += 1
         else:
-            print("ℹ️  Test user already exists")
+            print("\n⊘ Test user already exists: test@example.com")
+            skipped += 1
         
         # Create admin user
         admin_user = db.query(User).filter(User.email == "admin@example.com").first()
@@ -35,40 +45,39 @@ def create_test_data():
                 is_superuser=True
             )
             db.add(admin_user)
-            print("✅ Created admin user: admin@example.com / admin123")
+            print("✓ Created admin user: admin@example.com")
+            created += 1
         else:
-            print("ℹ️  Admin user already exists")
-        
-        # Create categories
-        categories_data = [
-            {"name": "Строительство", "description": "Строительные работы любой сложности", "icon": "🏗️"},
-            {"name": "Ремонт", "description": "Ремонт квартир и домов", "icon": "🔧"},
-            {"name": "Сантехника", "description": "Сантехнические услуги", "icon": "🚰"},
-            {"name": "Электрика", "description": "Электромонтажные работы", "icon": "⚡"},
-            {"name": "Уборка", "description": "Клининговые услуги", "icon": "🧹"},
-            {"name": "Ландшафт", "description": "Ландшафтный дизайн", "icon": "🌳"},
-            {"name": "IT-услуги", "description": "Компьютерная помощь", "icon": "💻"},
-            {"name": "Перевозки", "description": "Грузоперевозки", "icon": "🚚"},
-        ]
-        
-        for cat_data in categories_data:
-            existing_cat = db.query(Category).filter(Category.name == cat_data["name"]).first()
-            if not existing_cat:
-                category = Category(**cat_data)
-                db.add(category)
-                print(f"✅ Created category: {cat_data['name']}")
+            print("⊘ Admin user already exists: admin@example.com")
+            skipped += 1
         
         db.commit()
-        print("\n✅ Test data created successfully!")
-        print("\n📝 You can now login with:")
-        print("   User: test@example.com / password123")
-        print("   Admin: admin@example.com / admin123")
+        
+        print("\n" + "=" * 60)
+        print("Test users creation completed!")
+        print("=" * 60)
+        print(f"\nResults:")
+        print(f"  - Created: {created} users")
+        print(f"  - Skipped: {skipped} users")
+        print(f"\n📝 Login credentials:")
+        print(f"  User:  test@example.com / password123")
+        print(f"  Admin: admin@example.com / admin123")
+        print("=" * 60)
         
     except Exception as e:
-        print(f"❌ Error: {e}")
         db.rollback()
+        print("\n" + "=" * 60)
+        print("❌ ERROR: Test user creation failed!")
+        print("=" * 60)
+        print(f"\nError details: {str(e)}")
+        print("\nPlease check:")
+        print("  1. Database is initialized: python init_db.py")
+        print("  2. Database connection is working")
+        print("=" * 60)
+        sys.exit(1)
+        
     finally:
         db.close()
 
 if __name__ == "__main__":
-    create_test_data()
+    create_test_users()

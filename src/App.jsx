@@ -50,6 +50,28 @@ const Layout = ({ children, isAuthed, setIsAuthed, currentUser, setCurrentUser, 
     }
   }, [userMenuOpen]);
 
+  // Notifications logic
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notifMenuOpen, setNotifMenuOpen] = useState(false);
+
+  const fetchNotifications = async () => {
+    if (!isAuthed) return;
+    try {
+      const { data } = await api.getNotifications();
+      setNotifications(data);
+      setUnreadCount(data.filter(n => !n.is_read).length);
+    } catch (e) {
+      console.error("Error fetching notifications", e);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30000); // Poll every 30s
+    return () => clearInterval(interval);
+  }, [isAuthed]);
+
   const navItems = [
     { key: '/', label: 'Главная' },
     { key: '/worker-dashboard', label: 'Задачи', providerOnly: true },
@@ -90,8 +112,8 @@ const Layout = ({ children, isAuthed, setIsAuthed, currentUser, setCurrentUser, 
                     key={item.key}
                     onClick={() => navigate(item.key)}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${isActive
-                        ? 'bg-blue-50 text-blue-600'
-                        : 'text-gray-700 hover:bg-gray-50'
+                      ? 'bg-blue-50 text-blue-600'
+                      : 'text-gray-700 hover:bg-gray-50'
                       }`}
                   >
                     {item.label}
@@ -118,60 +140,108 @@ const Layout = ({ children, isAuthed, setIsAuthed, currentUser, setCurrentUser, 
                   </button>
                 </>
               ) : (
-                <div className="relative">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setUserMenuOpen(!userMenuOpen);
-                    }}
-                    className="flex items-center gap-3 px-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-lg transition-all"
-                  >
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
-                      <User size={18} className="text-white" />
-                    </div>
-                    <span className="font-medium text-gray-900">
-                      {currentUser?.full_name || currentUser?.email || 'Профиль'}
-                    </span>
-                  </button>
+                <div className="flex items-center">
+                  <div className="relative mr-4">
+                    <button
+                      onClick={() => setNotifMenuOpen(!notifMenuOpen)}
+                      className="p-2 text-gray-500 hover:text-blue-600 transition-colors relative"
+                    >
+                      <Bell size={24} />
+                      {unreadCount > 0 && (
+                        <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
+                      )}
+                    </button>
 
-                  {/* User Dropdown */}
-                  {userMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50">
-                      <div className="px-4 py-3 border-b border-gray-100">
-                        <p className="text-sm font-medium text-gray-900">
-                          {currentUser?.full_name || 'Пользователь'}
-                        </p>
-                        <p className="text-xs text-gray-500">{currentUser?.email}</p>
+                    {notifMenuOpen && (
+                      <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50 max-h-96 overflow-y-auto">
+                        <div className="px-4 py-3 border-b border-gray-100 flex justify-between items-center">
+                          <h3 className="font-semibold text-gray-900">Уведомления</h3>
+                          {unreadCount > 0 && <span className="text-xs text-blue-600 font-medium">{unreadCount} новых</span>}
+                        </div>
+                        {notifications.length === 0 ? (
+                          <div className="px-4 py-8 text-center text-gray-500 text-sm">Нет новых уведомлений</div>
+                        ) : (
+                          notifications.map((notif) => (
+                            <div key={notif.id} className={`px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0 ${!notif.is_read ? 'bg-blue-50/50' : ''}`}>
+                              <div className="flex justify-between items-start mb-1">
+                                <span className={`text-sm font-medium ${!notif.is_read ? 'text-blue-800' : 'text-gray-900'}`}>{notif.title}</span>
+                                <span className="text-xs text-gray-400">{new Date(notif.created_at).toLocaleDateString()}</span>
+                              </div>
+                              <p className="text-sm text-gray-600 mb-2">{notif.message}</p>
+                              {!notif.is_read && (
+                                <button
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    await api.markNotificationRead(notif.id);
+                                    fetchNotifications();
+                                  }}
+                                  className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                                >
+                                  Пометить как прочитанное
+                                </button>
+                              )}
+                            </div>
+                          ))
+                        )}
                       </div>
-                      <button
-                        onClick={() => {
-                          navigate('/my-requests');
-                          setUserMenuOpen(false);
-                        }}
-                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                      >
-                        <Bell size={16} />
-                        Мои заявки
-                      </button>
-                      <button
-                        onClick={() => {
-                          navigate('/settings');
-                          setUserMenuOpen(false);
-                        }}
-                        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-                      >
-                        <User size={16} />
-                        Настройки
-                      </button>
-                      <button
-                        onClick={handleLogout}
-                        className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                      >
-                        <LogOut size={16} />
-                        Выйти
-                      </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
+
+                  <div className="relative">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setUserMenuOpen(!userMenuOpen);
+                      }}
+                      className="flex items-center gap-3 px-4 py-2 bg-gray-50 hover:bg-gray-100 rounded-lg transition-all"
+                    >
+                      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                        <User size={18} className="text-white" />
+                      </div>
+                      <span className="font-medium text-gray-900">
+                        {currentUser?.full_name || currentUser?.email || 'Профиль'}
+                      </span>
+                    </button>
+
+                    {/* User Dropdown */}
+                    {userMenuOpen && (
+                      <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-50">
+                        <div className="px-4 py-3 border-b border-gray-100">
+                          <p className="text-sm font-medium text-gray-900">
+                            {currentUser?.full_name || 'Пользователь'}
+                          </p>
+                          <p className="text-xs text-gray-500">{currentUser?.email}</p>
+                        </div>
+                        <button
+                          onClick={() => {
+                            navigate('/my-requests');
+                            setUserMenuOpen(false);
+                          }}
+                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                        >
+                          <Bell size={16} />
+                          Мои заявки
+                        </button>
+                        <button
+                          onClick={() => {
+                            navigate('/settings');
+                            setUserMenuOpen(false);
+                          }}
+                          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                        >
+                          <User size={16} />
+                          Настройки
+                        </button>
+                        <button
+                          onClick={handleLogout}
+                          className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                        >
+                          <LogOut size={16} />
+                          Выйти
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -204,8 +274,8 @@ const Layout = ({ children, isAuthed, setIsAuthed, currentUser, setCurrentUser, 
                       setMobileMenuOpen(false);
                     }}
                     className={`block w-full text-left px-4 py-3 rounded-lg font-medium transition-all ${isActive
-                        ? 'bg-blue-50 text-blue-600'
-                        : 'text-gray-700 hover:bg-gray-50'
+                      ? 'bg-blue-50 text-blue-600'
+                      : 'text-gray-700 hover:bg-gray-50'
                       }`}
                   >
                     {item.label}
@@ -275,16 +345,49 @@ const App = () => {
   const [currentUser, setCurrentUser] = useState(api.getStoredUser());
   const [pendingPath, setPendingPath] = useState(null);
 
-  const categories = [
-    { id: 1, name: 'Строительство', icon: '🏗️', description: 'Строительные работы любой сложности' },
-    { id: 2, name: 'Ремонт', icon: '🔧', description: 'Ремонт квартир и домов' },
-    { id: 3, name: 'Сантехника', icon: '🚰', description: 'Сантехнические услуги' },
-    { id: 4, name: 'Электрика', icon: '⚡', description: 'Электромонтажные работы' },
-    { id: 5, name: 'Уборка', icon: '🧹', description: 'Клининговые услуги' },
-    { id: 6, name: 'Ландшафт', icon: '🌳', description: 'Ландшафтный дизайн' },
-    { id: 7, name: 'IT-услуги', icon: '💻', description: 'Компьютерная помощь' },
-    { id: 8, name: 'Перевозки', icon: '🚚', description: 'Грузоперевозки' }
-  ];
+  const [categories, setCategories] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  const loadCategories = async () => {
+    try {
+      setCategoriesLoading(true);
+      const { data } = await api.getCategories();
+      if (data && data.length > 0) {
+        setCategories(data);
+      } else {
+        // Fallback if no categories in DB
+        setCategories([
+          { id: 1, name: 'Строительство', icon: '🏗️', description: 'Строительные работы любой сложности' },
+          { id: 2, name: 'Ремонт', icon: '🔧', description: 'Ремонт квартир и домов' },
+          { id: 3, name: 'Сантехника', icon: '🚰', description: 'Сантехнические услуги' },
+          { id: 4, name: 'Электрика', icon: '⚡', description: 'Электромонтажные работы' },
+          { id: 5, name: 'Уборка', icon: '🧹', description: 'Клининговые услуги' },
+          { id: 6, name: 'Ландшафт', icon: '🌳', description: 'Ландшафтный дизайн' },
+          { id: 7, name: 'IT-услуги', icon: '💻', description: 'Компьютерная помощь' },
+          { id: 8, name: 'Перевозки', icon: '🚚', description: 'Грузоперевозки' }
+        ]);
+      }
+    } catch (error) {
+      console.error('Error loading categories:', error);
+      // Fallback on error
+      setCategories([
+        { id: 1, name: 'Строительство', icon: '🏗️', description: 'Строительные работы любой сложности' },
+        { id: 2, name: 'Ремонт', icon: '🔧', description: 'Ремонт квартир и домов' },
+        { id: 3, name: 'Сантехника', icon: '🚰', description: 'Сантехнические услуги' },
+        { id: 4, name: 'Электрика', icon: '⚡', description: 'Электромонтажные работы' },
+        { id: 5, name: 'Уборка', icon: '🧹', description: 'Клининговые услуги' },
+        { id: 6, name: 'Ландшафт', icon: '🌳', description: 'Ландшафтный дизайн' },
+        { id: 7, name: 'IT-услуги', icon: '💻', description: 'Компьютерная помощь' },
+        { id: 8, name: 'Перевозки', icon: '🚚', description: 'Грузоперевозки' }
+      ]);
+    } finally {
+      setCategoriesLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (isAuthed) {

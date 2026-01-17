@@ -11,6 +11,7 @@ from app.models.category import Category
 from app.models.request import Request
 from app.models.quote import Quote
 from app.models.service import ProviderService
+from app.models.review import Review
 from app.db.session import SessionLocal
 from app.core.security import verify_password
 
@@ -284,6 +285,28 @@ class AdminAuth(AuthenticationBackend):
         finally:
             db.close()
 
+class ReviewAdmin(ModelView, model=Review):
+    name = "Отзыв"
+    name_plural = "Отзывы"
+    icon = "fa-solid fa-star"
+    
+    column_list = [
+        Review.id,
+        Review.request_id,
+        Review.provider_id,
+        Review.rating,
+        Review.created_at
+    ]
+    column_searchable_list = [Review.comment]
+    column_sortable_list = [Review.id, Review.rating, Review.created_at]
+    
+    form_excluded_columns = [Review.created_at]
+    
+    can_create = True
+    can_edit = True
+    can_delete = True
+    can_view_details = True
+
 def setup_admin(app, engine):
     """Setup SQLAdmin with all model views"""
     from app.core.config import settings
@@ -310,5 +333,6 @@ def setup_admin(app, engine):
     admin.add_view(RequestAdmin)
     admin.add_view(QuoteAdmin)
     admin.add_view(ServiceAdmin)
+    admin.add_view(ReviewAdmin)
     
     return admin

@@ -5,11 +5,11 @@ PyMySQL==1.1.1
 psycopg[binary]==3.2.12
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
-bcrypt==4.2.0
+bcrypt==4.0.1
 python-multipart==0.0.9
 python-dotenv==1.0.1
-alembic==1.13.2
-pydantic==2.10.4
-pydantic-settings==2.5.2
-email-validator==2.2.0
-sqladmin==0.21.0
+alembic==1.13.1
+pydantic<2.0.0
+email-validator==2.1.0.post1
+sqladmin==0.16.0
+itsdangerous==2.1.2

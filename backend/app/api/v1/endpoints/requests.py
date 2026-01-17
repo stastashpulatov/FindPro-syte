@@ -64,8 +64,17 @@ def create_request(
         if not provider:
             raise HTTPException(status_code=400, detail="Invalid provider ID")
 
+    request_data = request.dict()
+    # Serialize photos
+    if 'photos' in request_data and request_data['photos']:
+        import json
+        request_data['photos'] = json.dumps(request_data['photos'])
+    else:
+        import json
+        request_data['photos'] = json.dumps([])
+
     db_request = models.Request(
-        **request.dict(),
+        **request_data,
         user_id=current_user.id
     )
     db.add(db_request)
@@ -107,6 +116,12 @@ def update_request(
         raise HTTPException(status_code=403, detail="Not enough permissions")
     
     update_data = request.dict(exclude_unset=True)
+    
+    # Serialize photos if present
+    if 'photos' in update_data and update_data['photos'] is not None:
+        import json
+        update_data['photos'] = json.dumps(update_data['photos'])
+        
     for field, value in update_data.items():
         setattr(db_request, field, value)
     

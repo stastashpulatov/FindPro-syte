@@ -20,7 +20,7 @@ class ReviewInDBBase(ReviewBase):
     created_at: datetime
     
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 # Properties to return to client
 class Review(ReviewInDBBase):

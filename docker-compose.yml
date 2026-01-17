@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=development
+      - DATABASE_URL=sqlite:///./findpro.db
+    volumes:
+      - ./backend:/app
+      # Avoid overwriting container's venv if mapped, though container uses system python mainly
+      - /app/__pycache__
+
+  frontend:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000/api/v1
+    command: sh -c "npm install && npm start"
+    depends_on:
+      - backend

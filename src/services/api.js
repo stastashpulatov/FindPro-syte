@@ -187,7 +187,23 @@ const api = {
 
   deleteCategory: (id) => axiosInstance.delete(`/categories/${id}`),
 
+  // ==================== Notifications ====================
+
+  getNotifications: () => axiosInstance.get('/notifications'),
+
+  markNotificationRead: (id) => axiosInstance.put(`/notifications/${id}/read`),
+
   // ==================== Helpers ====================
+
+  uploadFile: (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return axiosInstance.post('/utils/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
 
   isAuthenticated: () => {
     return !!localStorage.getItem('token');
