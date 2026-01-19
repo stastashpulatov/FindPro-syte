@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Send, Upload, X, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, MapPin, DollarSign, FileText, Upload, X, Send } from 'lucide-react';
 import api from '../services/api';
 
-const RequestPage = ({ onNavigate, categories, setQuotes, setAllRequests, allRequests, initialProviderId }) => {
+const RequestPage = ({ onNavigate, categories, setAllRequests, allRequests, initialProviderId }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',

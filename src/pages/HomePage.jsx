@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowRight, CheckCircle, Users, Star, Clock, Shield, Zap, Award, TrendingUp } from 'lucide-react';
+import { Search, MapPin, Star, CheckCircle, Users, Clock, Shield, Award, ArrowRight, Zap } from 'lucide-react';
 
 const HomePage = ({ onNavigate, categories }) => {
   const [show, setShow] = useState(false);
@@ -62,8 +62,8 @@ const HomePage = ({ onNavigate, categories }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      {/* Hero Section - Улучшенный дизайн */}
-      <section className={`relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white py-24 transition-all duration-700 ${show ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}>
+      {/* Hero Section-Улучшенный дизайн */}
+      <section className={`relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white py-24 transition-all duration-700 ${show ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'} `}>
         {/* Декоративные элементы */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-10">
           <div className="absolute top-20 left-10 w-72 h-72 bg-white rounded-full blur-3xl"></div>
@@ -95,7 +95,7 @@ const HomePage = ({ onNavigate, categories }) => {
                 Найти специалиста
               </button>
             </div>
-            
+
             {/* Статистика */}
             <div className="grid grid-cols-3 gap-8 mt-16 max-w-2xl mx-auto">
               {[
@@ -113,8 +113,8 @@ const HomePage = ({ onNavigate, categories }) => {
         </div>
       </section>
 
-      {/* Features Section - Новый дизайн */}
-      <section className={`py-20 transition-all duration-700 delay-100 ${show ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+      {/* Features Section-Новый дизайн */}
+      <section className={`py-20 transition-all duration-700 delay-100 ${show ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'} `}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {features.map((feature, idx) => {
@@ -123,9 +123,9 @@ const HomePage = ({ onNavigate, categories }) => {
                 <div
                   key={idx}
                   className="relative group bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2"
-                  style={{ transitionDelay: `${idx * 100}ms` }}
+                  style={{ transitionDelay: `${idx * 100} ms` }}
                 >
-                  <div className={`w-16 h-16 bg-gradient-to-br ${feature.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
+                  <div className={`w-16 h-16 bg-gradient-to-br ${feature.color} rounded-2xl flex items-center justify-center mb-6 group-hover: scale-110 transition-transform`}>
                     <Icon className="text-white" size={32} />
                   </div>
                   <h3 className="text-xl font-bold mb-3 text-gray-900">{feature.title}</h3>
@@ -142,7 +142,7 @@ const HomePage = ({ onNavigate, categories }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl font-bold text-center mb-4">Как это работает</h2>
           <p className="text-xl text-gray-600 text-center mb-16">Простой процесс в 3 шага</p>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             {[
               {
@@ -174,17 +174,17 @@ const HomePage = ({ onNavigate, categories }) => {
                   {idx < 2 && (
                     <div className="hidden md:block absolute top-16 left-1/2 w-full h-1 bg-gradient-to-r from-gray-300 to-gray-200 -z-10"></div>
                   )}
-                  
+
                   <div className="relative inline-flex items-center justify-center w-32 h-32 mb-6">
-                    <div className={`absolute inset-0 bg-${item.color}-100 rounded-full animate-pulse`}></div>
-                    <div className={`relative w-24 h-24 bg-gradient-to-br from-${item.color}-500 to-${item.color}-600 rounded-full flex items-center justify-center shadow-xl`}>
+                    <div className={`absolute inset-0 bg-${item.color} -100 rounded-full animate-pulse`}></div>
+                    <div className={`relative w-24 h-24 bg-gradient-to-br from-${item.color} -500 to-${item.color} -600 rounded-full flex items-center justify-center shadow-xl`}>
                       <Icon className="text-white" size={40} />
                     </div>
                     <div className="absolute -top-2 -right-2 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center font-bold text-xl text-gray-800">
                       {item.step}
                     </div>
                   </div>
-                  
+
                   <h3 className="text-2xl font-bold mb-3 text-gray-900">{item.title}</h3>
                   <p className="text-gray-600 leading-relaxed max-w-xs mx-auto">{item.description}</p>
                 </div>
@@ -194,19 +194,19 @@ const HomePage = ({ onNavigate, categories }) => {
         </div>
       </section>
 
-      {/* Categories Section - Улучшенный */}
+      {/* Categories Section-Улучшенный */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl font-bold text-center mb-4">Популярные категории</h2>
           <p className="text-xl text-gray-600 text-center mb-16">Более 50 видов услуг</p>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {categories.map((category, idx) => (
               <div
                 key={category.id}
                 onClick={() => onNavigate('request')}
-                className={`group bg-gradient-to-br from-gray-50 to-white border-2 border-gray-100 p-6 rounded-2xl text-center cursor-pointer transition-all duration-300 hover:shadow-2xl hover:border-blue-300 hover:-translate-y-2 ${show ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
-                style={{ transitionDelay: `${Math.min(idx, 6) * 50}ms` }}
+                className={`group bg-gradient-to-br from-gray-50 to-white border-2 border-gray-100 p-6 rounded-2xl text-center cursor-pointer transition-all duration-300 hover: shadow-2xl hover: border-blue-300 hover: -translate-y-2 ${show ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'} `}
+                style={{ transitionDelay: `${Math.min(idx, 6) * 50} ms` }}
               >
                 <div className="text-5xl mb-4 group-hover:scale-125 transition-transform duration-300">
                   {category.icon}
@@ -221,20 +221,19 @@ const HomePage = ({ onNavigate, categories }) => {
         </div>
       </section>
 
-      {/* Testimonials Section - Новый */}
+      {/* Testimonials Section-Новый */}
       <section className="py-20 bg-gradient-to-br from-blue-600 to-indigo-700 text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl font-bold text-center mb-16">Что говорят наши клиенты</h2>
-          
+
           <div className="relative">
             {testimonials.map((testimonial, idx) => (
               <div
                 key={idx}
-                className={`transition-all duration-500 ${
-                  idx === activeTestimonial 
-                    ? 'opacity-100 translate-x-0' 
-                    : 'opacity-0 absolute top-0 left-0 right-0 translate-x-full'
-                }`}
+                className={`transition-all duration-500 ${idx === activeTestimonial
+                  ? 'opacity-100 translate-x-0'
+                  : 'opacity-0 absolute top-0 left-0 right-0 translate-x-full'
+                  } `}
               >
                 <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 md:p-12">
                   <div className="flex gap-1 mb-6 justify-center">
@@ -252,18 +251,17 @@ const HomePage = ({ onNavigate, categories }) => {
                 </div>
               </div>
             ))}
-            
+
             {/* Индикаторы */}
             <div className="flex gap-2 justify-center mt-8">
               {testimonials.map((_, idx) => (
                 <button
                   key={idx}
                   onClick={() => setActiveTestimonial(idx)}
-                  className={`w-3 h-3 rounded-full transition-all ${
-                    idx === activeTestimonial 
-                      ? 'bg-white w-8' 
-                      : 'bg-white/50 hover:bg-white/75'
-                  }`}
+                  className={`w-3 h-3 rounded-full transition-all ${idx === activeTestimonial
+                    ? 'bg-white w-8'
+                    : 'bg-white/50 hover:bg-white/75'
+                    } `}
                 />
               ))}
             </div>
@@ -271,7 +269,7 @@ const HomePage = ({ onNavigate, categories }) => {
         </div>
       </section>
 
-      {/* CTA Section - Улучшенный */}
+      {/* CTA Section-Улучшенный */}
       <section className="py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl p-12 md:p-16 text-center text-white shadow-2xl">
@@ -286,7 +284,7 @@ const HomePage = ({ onNavigate, categories }) => {
               Создать заявку бесплатно
               <ArrowRight size={24} className="group-hover:translate-x-2 transition-transform" />
             </button>
-            
+
             <div className="mt-8 text-blue-100 text-sm">
               <Clock size={16} className="inline mr-2" />
               Регистрация не требуется • Ответы в течение часа
@@ -296,21 +294,21 @@ const HomePage = ({ onNavigate, categories }) => {
       </section>
 
       <style jsx>{`
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
+@keyframes fade -in {
+  from {
+  opacity: 0;
+  transform: translateY(20px);
+}
           to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+  opacity: 1;
+  transform: translateY(0);
+}
         }
         
-        .animate-fade-in {
-          animation: fade-in 1s ease-out;
+        .animate-fade -in {
+  animation: fade -in 1s ease- out;
         }
-      `}</style>
+`}</style>
     </div>
   );
 };

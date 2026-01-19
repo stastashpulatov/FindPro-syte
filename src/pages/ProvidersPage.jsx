@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Star, MapPin, Briefcase, CheckCircle } from 'lucide-react';
+import { Search, MapPin, Star, Filter, CheckCircle } from 'lucide-react';
 import api from '../services/api';
 
 const ProvidersPage = ({ onNavigate }) => {

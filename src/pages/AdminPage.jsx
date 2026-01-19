@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Trash2, Edit } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import api from '../services/api';
 
 const AdminPage = ({ onNavigate, categories }) => {
@@ -121,7 +121,7 @@ const AdminPage = ({ onNavigate, categories }) => {
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{provider.rating?.toFixed(1)}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{provider.balance?.toLocaleString()} сум</td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${provider.is_available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${provider.is_available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} `}>
                                             {provider.is_available ? 'Свободен' : 'Занят'}
                                         </span>
                                     </td>

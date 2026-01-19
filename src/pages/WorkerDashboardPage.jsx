@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, MapPin, Calendar, DollarSign, Search, Briefcase, Send } from 'lucide-react';
+import { Briefcase, Search, Calendar, MapPin } from 'lucide-react';
 import api from '../services/api';
 import Loader from '../components/Loader';
 import toast from 'react-hot-toast';
@@ -94,18 +94,18 @@ const WorkerDashboardPage = ({ onNavigate, currentUser }) => {
                         <button
                             onClick={() => setActiveTab('my-jobs')}
                             className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'my-jobs'
-                                    ? 'bg-blue-600 text-white shadow-sm'
-                                    : 'text-gray-600 hover:bg-gray-50'
-                                }`}
+                                ? 'bg-blue-600 text-white shadow-sm'
+                                : 'text-gray-600 hover:bg-gray-50'
+                                } `}
                         >
                             Мои задачи
                         </button>
                         <button
                             onClick={() => setActiveTab('find-work')}
                             className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'find-work'
-                                    ? 'bg-blue-600 text-white shadow-sm'
-                                    : 'text-gray-600 hover:bg-gray-50'
-                                }`}
+                                ? 'bg-blue-600 text-white shadow-sm'
+                                : 'text-gray-600 hover:bg-gray-50'
+                                } `}
                         >
                             Найти работу
                         </button>
@@ -140,7 +140,7 @@ const WorkerDashboardPage = ({ onNavigate, currentUser }) => {
                                             <div className="flex justify-between items-start mb-4">
                                                 <div>
                                                     <h3 className="text-xl font-bold text-gray-900 mb-2">{job.title}</h3>
-                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(job.status)}`}>
+                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(job.status)} `}>
                                                         {getStatusText(job.status)}
                                                     </span>
                                                 </div>

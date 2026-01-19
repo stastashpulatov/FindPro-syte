@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { Menu, X, User, LogOut, Bell, Briefcase, Search } from 'lucide-react';
+import { Menu, X, User, LogOut, Bell } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 import api from './services/api';
 import AuthModal from './components/AuthModal';
@@ -55,7 +55,7 @@ const Layout = ({ children, isAuthed, setIsAuthed, currentUser, setCurrentUser, 
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifMenuOpen, setNotifMenuOpen] = useState(false);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     if (!isAuthed) return;
     try {
       const { data } = await api.getNotifications();
@@ -64,13 +64,13 @@ const Layout = ({ children, isAuthed, setIsAuthed, currentUser, setCurrentUser, 
     } catch (e) {
       console.error("Error fetching notifications", e);
     }
-  };
+  }, [isAuthed]);
 
   useEffect(() => {
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 30000); // Poll every 30s
     return () => clearInterval(interval);
-  }, [isAuthed]);
+  }, [fetchNotifications]);
 
   const navItems = [
     { key: '/', label: 'Главная' },
@@ -338,15 +338,12 @@ const Layout = ({ children, isAuthed, setIsAuthed, currentUser, setCurrentUser, 
 };
 
 const App = () => {
-  const [quotes, setQuotes] = useState([]);
   const [allRequests, setAllRequests] = useState([]);
   const [authOpen, setAuthOpen] = useState(false);
   const [isAuthed, setIsAuthed] = useState(api.isAuthenticated());
   const [currentUser, setCurrentUser] = useState(api.getStoredUser());
-  const [pendingPath, setPendingPath] = useState(null);
-
+  const [quotes, setQuotes] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [categoriesLoading, setCategoriesLoading] = useState(true);
 
   useEffect(() => {
     loadCategories();
@@ -354,7 +351,6 @@ const App = () => {
 
   const loadCategories = async () => {
     try {
-      setCategoriesLoading(true);
       const { data } = await api.getCategories();
       if (data && data.length > 0) {
         setCategories(data);
@@ -384,8 +380,6 @@ const App = () => {
         { id: 7, name: 'IT-услуги', icon: '💻', description: 'Компьютерная помощь' },
         { id: 8, name: 'Перевозки', icon: '🚚', description: 'Грузоперевозки' }
       ]);
-    } finally {
-      setCategoriesLoading(false);
     }
   };
 
@@ -462,7 +456,6 @@ const App = () => {
               <PageWrapper
                 Component={RequestPage}
                 categories={categories}
-                setQuotes={setQuotes}
                 setAllRequests={setAllRequests}
                 allRequests={allRequests}
               />

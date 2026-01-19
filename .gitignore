@@ -12,6 +12,13 @@ __pycache__/
 # C extensions
 *.so
 
+# Logs and temporary files
+*.log
+*.db
+backend.log
+frontend.log
+startup.log
+
 # Distribution / packaging
 .Python
 build/
