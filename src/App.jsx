@@ -41,6 +41,21 @@ const Layout = ({ children, isAuthed, setIsAuthed, currentUser, setCurrentUser, 
     setMobileMenuOpen(false);
   }, [location]);
 
+  // Dynamic titles for SEO
+  useEffect(() => {
+    const titles = {
+      '/': 'FindPro — Поиск специалистов',
+      '/request': 'Создать заявку — FindPro',
+      '/my-requests': 'Мои заявки — FindPro',
+      '/quotes': 'Предложения — FindPro',
+      '/providers': 'Специалисты — FindPro',
+      '/worker-dashboard': 'Панель специалиста — FindPro',
+      '/admin': 'Админ-панель — FindPro',
+      '/settings': 'Настройки аккаунта — FindPro'
+    };
+    document.title = titles[location.pathname] || 'FindPro';
+  }, [location]);
+
   // Close user menu on click outside
   useEffect(() => {
     const handleClick = () => setUserMenuOpen(false);
@@ -349,19 +364,7 @@ const App = () => {
     loadCategories();
   }, []);
 
-  useEffect(() => {
-    const titles = {
-      home: 'FindPro — Поиск специалистов',
-      request: 'Создать заявку — FindPro',
-      'my-requests': 'Мои заявки — FindPro',
-      quotes: 'Предложения — FindPro',
-      providers: 'Специалисты — FindPro',
-      'worker-dashboard': 'Панель специалиста — FindPro',
-      admin: 'Админ-панель — FindPro',
-      'account-settings': 'Настройки аккаунта — FindPro'
-    };
-    document.title = titles[currentPage] || 'FindPro';
-  }, [currentPage]);
+
 
   const loadCategories = async () => {
     try {
