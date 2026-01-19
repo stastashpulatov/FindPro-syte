@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, Users, Briefcase, FileText, Star, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import api from '../services/api';
+import Loader from '../components/Loader';
+import ConfirmModal from '../components/ConfirmModal';
+import toast from 'react-hot-toast';
 
 const AdminPage = ({ onNavigate, categories }) => {
     const [providers, setProviders] = useState([]);
@@ -16,6 +19,10 @@ const AdminPage = ({ onNavigate, categories }) => {
         is_available: true,
         rating: 0,
         balance: 0,
+    });
+    const [confirmModal, setConfirmModal] = useState({
+        open: false,
+        providerId: null,
     });
 
     useEffect(() => {
@@ -47,7 +54,7 @@ const AdminPage = ({ onNavigate, categories }) => {
                 rating: parseFloat(formData.rating),
                 balance: parseFloat(formData.balance),
             });
-            alert('Специалист успешно добавлен');
+            toast.success('Специалист успешно добавлен');
             setIsModalOpen(false);
             loadData();
             setFormData({
@@ -62,17 +69,26 @@ const AdminPage = ({ onNavigate, categories }) => {
             });
         } catch (error) {
             console.error('Error creating provider:', error);
-            alert('Ошибка при создании специалиста: ' + (error.response?.data?.detail || error.message));
+            toast.error('Ошибка при создании специалиста: ' + (error.response?.data?.detail || error.message));
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Вы уверены?')) return;
+    const handleDeleteProvider = (id) => {
+        setConfirmModal({ open: true, providerId: id });
+    };
+
+    const confirmDeleteProvider = async () => {
+        const id = confirmModal.providerId;
+        if (!id) return;
+
         try {
             await api.deleteProvider(id);
+            toast.success('Специалист удален');
+            setConfirmModal({ open: false, providerId: null });
             loadData();
         } catch (error) {
             console.error('Error deleting provider:', error);
+            toast.error('Ошибка при удалении');
         }
     };
 
@@ -91,57 +107,79 @@ const AdminPage = ({ onNavigate, categories }) => {
                     <h1 className="text-3xl font-bold text-gray-900">Панель администратора</h1>
                     <button
                         onClick={() => setIsModalOpen(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
                     >
                         <Plus size={20} />
                         Добавить специалиста
                     </button>
                 </div>
 
-                <div className="bg-white rounded-lg shadow overflow-hidden">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Компания / Имя</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Рейтинг</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Баланс</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Статус</th>
-                                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Действия</th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {providers.map((provider) => (
-                                <tr key={provider.id}>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{provider.id}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm font-medium text-gray-900">{provider.company_name}</div>
-                                        <div className="text-sm text-gray-500">{provider.user?.email}</div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{provider.rating?.toFixed(1)}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{provider.balance?.toLocaleString()} сум</td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${provider.is_available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} `}>
-                                            {provider.is_available ? 'Свободен' : 'Занят'}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <button onClick={() => handleDelete(provider.id)} className="text-red-600 hover:text-red-900 ml-4">
-                                            <Trash2 size={18} />
-                                        </button>
-                                    </td>
+                {isLoading ? (
+                    <div className="py-20">
+                        <Loader size="large" />
+                    </div>
+                ) : (
+                    <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Компания / Имя</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Рейтинг</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Баланс</th>
+                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Статус</th>
+                                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Действия</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {providers.map((provider) => (
+                                    <tr key={provider.id} className="hover:bg-gray-50 transition-colors">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{provider.id}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm font-semibold text-gray-900">{provider.company_name}</div>
+                                            <div className="text-sm text-gray-500">{provider.user?.email}</div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <div className="flex items-center gap-1">
+                                                <Star size={14} className="text-yellow-400 fill-yellow-400" />
+                                                {provider.rating?.toFixed(1) || '0.0'}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                            {provider.balance?.toLocaleString() || '0'} сум
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${provider.is_available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                {provider.is_available ? 'Свободен' : 'Занят'}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <button
+                                                onClick={() => handleDeleteProvider(provider.id)}
+                                                className="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded-lg transition-colors"
+                                                title="Удалить"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </div>
 
             {/* Add Provider Modal */}
             {isModalOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-lg max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
-                        <h2 className="text-2xl font-bold text-gray-900 mb-6">Добавить специалиста</h2>
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto shadow-2xl">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-2xl font-bold text-gray-900">Добавить специалиста</h2>
+                            <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                                <XCircle size={24} />
+                            </button>
+                        </div>
 
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
@@ -149,12 +187,12 @@ const AdminPage = ({ onNavigate, categories }) => {
                                 <select
                                     value={formData.user_id}
                                     onChange={(e) => setFormData({ ...formData, user_id: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     required
                                 >
                                     <option value="">Выберите пользователя</option>
                                     {users.map(user => (
-                                        <option key={user.id} value={user.id}>{user.email} ({user.full_name})</option>
+                                        <option key={user.id} value={user.id}>{user.email} ({user.full_name || 'Без имени'})</option>
                                     ))}
                                 </select>
                             </div>
@@ -165,7 +203,8 @@ const AdminPage = ({ onNavigate, categories }) => {
                                     type="text"
                                     value={formData.company_name}
                                     onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="ООО 'Пример' или Имя Фамилия"
                                 />
                             </div>
 
@@ -174,8 +213,9 @@ const AdminPage = ({ onNavigate, categories }) => {
                                 <textarea
                                     value={formData.description}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     rows="3"
+                                    placeholder="Опыт работы, специализация..."
                                 />
                             </div>
 
@@ -186,7 +226,8 @@ const AdminPage = ({ onNavigate, categories }) => {
                                         type="text"
                                         value={formData.service_area}
                                         onChange={(e) => setFormData({ ...formData, service_area: e.target.value })}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                        placeholder="Напр. Ташкент"
                                     />
                                 </div>
                                 <div>
@@ -195,31 +236,32 @@ const AdminPage = ({ onNavigate, categories }) => {
                                         type="number"
                                         step="0.1"
                                         max="5"
+                                        min="0"
                                         value={formData.rating}
                                         onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     />
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-4">
-                                <label className="flex items-center gap-2">
+                            <div className="flex items-center gap-6 py-2">
+                                <label className="flex items-center gap-2 cursor-pointer group">
                                     <input
                                         type="checkbox"
                                         checked={formData.is_verified}
                                         onChange={(e) => setFormData({ ...formData, is_verified: e.target.checked })}
-                                        className="rounded text-blue-600"
+                                        className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
                                     />
-                                    <span className="text-sm text-gray-700">Проверен</span>
+                                    <span className="text-sm font-medium text-gray-700 group-hover:text-blue-600 transition-colors">Проверен</span>
                                 </label>
-                                <label className="flex items-center gap-2">
+                                <label className="flex items-center gap-2 cursor-pointer group">
                                     <input
                                         type="checkbox"
                                         checked={formData.is_available}
                                         onChange={(e) => setFormData({ ...formData, is_available: e.target.checked })}
-                                        className="rounded text-blue-600"
+                                        className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500"
                                     />
-                                    <span className="text-sm text-gray-700">Свободен</span>
+                                    <span className="text-sm font-medium text-gray-700 group-hover:text-blue-600 transition-colors">Свободен</span>
                                 </label>
                             </div>
 
@@ -227,21 +269,30 @@ const AdminPage = ({ onNavigate, categories }) => {
                                 <button
                                     type="button"
                                     onClick={() => setIsModalOpen(false)}
-                                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                                    className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all font-semibold"
                                 >
                                     Отмена
                                 </button>
                                 <button
                                     type="submit"
-                                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                                    className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all font-semibold shadow-lg shadow-blue-200 active:scale-[0.98]"
                                 >
-                                    Создать
+                                    Создать специалиста
                                 </button>
                             </div>
                         </form>
                     </div>
                 </div>
             )}
+            <ConfirmModal
+                open={confirmModal.open}
+                onClose={() => setConfirmModal({ ...confirmModal, open: false })}
+                onConfirm={confirmDeleteProvider}
+                title="Удалить специалиста?"
+                message="Вы уверены, что хотите удалить этого специалиста? Это действие необратимо и удалит все связанные данные."
+                confirmText="Удалить"
+                variant="danger"
+            />
         </div>
     );
 };

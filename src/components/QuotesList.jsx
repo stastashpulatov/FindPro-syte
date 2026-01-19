@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { CheckCircle, XCircle, DollarSign, User, Clock } from 'lucide-react';
 import api from '../services/api';
 import Loader from './Loader';
+import ConfirmModal from './ConfirmModal';
 import toast from 'react-hot-toast';
 
 const QuotesList = ({ requestId, onQuoteAccepted }) => {
     const [quotes, setQuotes] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [confirmModal, setConfirmModal] = useState({ open: false, quoteId: null });
 
     useEffect(() => {
         loadQuotes();
@@ -24,10 +26,13 @@ const QuotesList = ({ requestId, onQuoteAccepted }) => {
         }
     };
 
-    const handleAccept = async (quoteId) => {
-        if (!window.confirm('Вы уверены, что хотите принять это предложение? Другие предложения будут отклонены.')) {
-            return;
-        }
+    const handleAccept = (quoteId) => {
+        setConfirmModal({ open: true, quoteId });
+    };
+
+    const confirmAccept = async () => {
+        const quoteId = confirmModal.quoteId;
+        if (!quoteId) return;
 
         try {
             await api.acceptQuote(quoteId);
@@ -67,7 +72,7 @@ const QuotesList = ({ requestId, onQuoteAccepted }) => {
                 <div
                     key={quote.id}
                     className={`bg-white border rounded-lg p-4 transition-all ${quote.status === 'accepted' ? 'border-green-500 ring-1 ring-green-500' :
-                            quote.status === 'rejected' ? 'opacity-50 bg-gray-50' : 'border-gray-200 hover:shadow-md'
+                        quote.status === 'rejected' ? 'opacity-50 bg-gray-50' : 'border-gray-200 hover:shadow-md'
                         }`}
                 >
                     <div className="flex justify-between items-start">
@@ -124,6 +129,16 @@ const QuotesList = ({ requestId, onQuoteAccepted }) => {
                     )}
                 </div>
             ))}
+
+            <ConfirmModal
+                open={confirmModal.open}
+                onClose={() => setConfirmModal({ ...confirmModal, open: false })}
+                onConfirm={confirmAccept}
+                title="Принять предложение?"
+                message="Вы уверены, что хотите принять это предложение? Другие предложения по этой заявке будут автоматически отклонены."
+                confirmText="Принять"
+                variant="success"
+            />
         </div>
     );
 };

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, CheckCircle, Star, MessageSquare, X } from 'lucide-react';
 import api from '../services/api';
 import QuotesList from '../components/QuotesList';
+import ConfirmModal from '../components/ConfirmModal';
 import Loader from '../components/Loader';
 import toast from 'react-hot-toast';
 
@@ -12,6 +13,7 @@ const MyRequestsPage = ({ onNavigate }) => {
   const [quotesModalOpen, setQuotesModalOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [reviewData, setReviewData] = useState({ rating: 5, comment: '' });
+  const [confirmModal, setConfirmModal] = useState({ open: false, request: null });
 
   useEffect(() => {
     loadRequests();
@@ -30,10 +32,14 @@ const MyRequestsPage = ({ onNavigate }) => {
     }
   };
 
-  const handleComplete = async (request) => {
-    if (!window.confirm('Вы уверены, что хотите завершить эту заявку? Средства будут переведены исполнителю.')) {
-      return;
-    }
+  const handleComplete = (request) => {
+    setConfirmModal({ open: true, request });
+  };
+
+  const confirmComplete = async () => {
+    const request = confirmModal.request;
+    if (!request) return;
+
     try {
       await api.completeRequest(request.id);
       loadRequests();
@@ -249,6 +255,16 @@ const MyRequestsPage = ({ onNavigate }) => {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        open={confirmModal.open}
+        onClose={() => setConfirmModal({ ...confirmModal, open: false })}
+        onConfirm={confirmComplete}
+        title="Завершить работу?"
+        message="Вы уверены, что хотите завершить эту заявку? Средства будут переведены исполнителю."
+        confirmText="Завершить"
+        variant="success"
+      />
     </div>
   );
 };

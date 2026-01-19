@@ -6,18 +6,9 @@ export { default as ProvidersPage } from './ProvidersPage';
 export { default as AccountSettingsPage } from './AccountSettingsPage';
 export { default as AdminPage } from './AdminPage';
 export { default as WorkerDashboardPage } from './WorkerDashboardPage';
+export { default as QuotesPage } from './QuotesPage';
 
-// Quotes Page Component (simple placeholder)
-export const QuotesPage = () => (
-  <div className="py-12">
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-      <h2 className="text-2xl font-bold text-gray-900 mb-8">Предложения от специалистов</h2>
-      <div className="space-y-4">
-        <p>Здесь будут отображаться предложения от специалистов</p>
-      </div>
-    </div>
-  </div>
-);
+
 
 // Footer Component
 export const Footer = () => (

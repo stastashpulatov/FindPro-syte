@@ -27,7 +27,8 @@ const getApiUrl = () => {
 
 const API_URL = getApiUrl();
 
-console.log('🔗 API URL:', API_URL); // Для отладки
+// const API_URL = getApiUrl();
+// console.log('🔗 API URL:', API_URL); // Для отладки
 
 // Create axios instance with default config
 const axiosInstance = axios.create({
@@ -48,7 +49,7 @@ axiosInstance.interceptors.request.use(
     }
 
     // Логируем для отладки
-    console.log('📤 Request:', config.method.toUpperCase(), config.url);
+    // console.log('📤 Request:', config.method.toUpperCase(), config.url);
 
     return config;
   },
@@ -61,7 +62,7 @@ axiosInstance.interceptors.request.use(
 // Response interceptor - обработка ошибок
 axiosInstance.interceptors.response.use(
   (response) => {
-    console.log('✅ Response:', response.config.url, response.status);
+    // console.log('✅ Response:', response.config.url, response.status);
     return response;
   },
   async (error) => {

@@ -349,6 +349,20 @@ const App = () => {
     loadCategories();
   }, []);
 
+  useEffect(() => {
+    const titles = {
+      home: 'FindPro — Поиск специалистов',
+      request: 'Создать заявку — FindPro',
+      'my-requests': 'Мои заявки — FindPro',
+      quotes: 'Предложения — FindPro',
+      providers: 'Специалисты — FindPro',
+      'worker-dashboard': 'Панель специалиста — FindPro',
+      admin: 'Админ-панель — FindPro',
+      'account-settings': 'Настройки аккаунта — FindPro'
+    };
+    document.title = titles[currentPage] || 'FindPro';
+  }, [currentPage]);
+
   const loadCategories = async () => {
     try {
       const { data } = await api.getCategories();
