@@ -2,34 +2,23 @@
   "name": "findpro",
   "version": "1.0.0",
   "private": true,
-  "description": "FindPro Backend API",
-  "main": "server.js",
+  "description": "FindPro — frontend клиента для платформы поиска специалистов",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "start:server": "node server.js",
-    "dev:server": "nodemon server.js",
-    "seed": "node seeders/seed.js"
+    "test:ci": "react-scripts test --watchAll=false --passWithNoTests",
+    "eject": "react-scripts eject"
   },
   "dependencies": {
-    "axios": "^1.6.0",
-    "bcryptjs": "^2.4.3",
-    "better-sqlite3": "^12.4.1",
-    "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
-    "express": "^4.18.2",
-    "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.263.1",
-    "mongoose": "^8.0.0",
+    "axios": "^1.6.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hot-toast": "^2.6.0",
     "react-router-dom": "^7.9.6",
     "react-scripts": "5.0.1",
-    "tailwindcss": "^3.3.0",
-    "uuid": "^13.0.0"
+    "tailwindcss": "^3.3.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

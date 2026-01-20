@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import api from '../services/api';
 
 const AuthModal = ({ open, onClose, onAuthed }) => {
@@ -11,12 +11,12 @@ const AuthModal = ({ open, onClose, onAuthed }) => {
 
   const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setShow(false);
     setTimeout(() => {
       onClose && onClose();
     }, 150);
-  };
+  }, [onClose]);
 
   useEffect(() => {
     if (open) {
@@ -27,7 +27,7 @@ const AuthModal = ({ open, onClose, onAuthed }) => {
       window.addEventListener('keydown', onKey);
       return () => window.removeEventListener('keydown', onKey);
     }
-  }, [open]);
+  }, [open, handleClose]);
 
   if (!open) return null;
 

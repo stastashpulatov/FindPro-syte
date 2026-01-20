@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { AlertTriangle, X } from 'lucide-react';
 
 const ConfirmModal = ({
@@ -13,6 +13,13 @@ const ConfirmModal = ({
 }) => {
     const [show, setShow] = useState(false);
 
+    const handleClose = useCallback(() => {
+        setShow(false);
+        setTimeout(() => {
+            onClose();
+        }, 200);
+    }, [onClose]);
+
     useEffect(() => {
         if (open) {
             setShow(true);
@@ -22,14 +29,7 @@ const ConfirmModal = ({
             window.addEventListener('keydown', onKey);
             return () => window.removeEventListener('keydown', onKey);
         }
-    }, [open]);
-
-    const handleClose = () => {
-        setShow(false);
-        setTimeout(() => {
-            onClose();
-        }, 200);
-    };
+    }, [open, handleClose]);
 
     const handleConfirm = () => {
         onConfirm();

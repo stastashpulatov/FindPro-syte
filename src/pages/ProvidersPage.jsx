@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Search, MapPin, Star, Filter, CheckCircle } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { MapPin, Star, CheckCircle } from 'lucide-react';
 import api from '../services/api';
 
 const ProvidersPage = ({ onNavigate }) => {
   const [providers, setProviders] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('');
   const [sortBy, setSortBy] = useState('rating'); // rating, availability, distance
   const [userLocation, setUserLocation] = useState({ lat: null, lon: null });
 
@@ -14,15 +13,10 @@ const ProvidersPage = ({ onNavigate }) => {
     setUserLocation({ lat: 41.2995, lon: 69.2401 }); // Tashkent
   }, []);
 
-  useEffect(() => {
-    loadProviders();
-  }, [selectedCategory, sortBy]);
-
-  const loadProviders = async () => {
+  const loadProviders = useCallback(async () => {
     setIsLoading(true);
     try {
       const params = {
-        ...(selectedCategory ? { category_id: selectedCategory } : {}),
         sort_by: sortBy,
         ...(sortBy === 'distance' && userLocation.lat ? { lat: userLocation.lat, lon: userLocation.lon } : {})
       };
@@ -33,7 +27,11 @@ const ProvidersPage = ({ onNavigate }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [sortBy, userLocation.lat, userLocation.lon]);
+
+  useEffect(() => {
+    loadProviders();
+  }, [loadProviders]);
 
   const renderRating = (rating) => {
     return (

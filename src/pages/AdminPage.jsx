@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Users, Briefcase, FileText, Star, Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { ArrowLeft, Plus, Star, Trash2, XCircle } from 'lucide-react';
 import api from '../services/api';
 import Loader from '../components/Loader';
 import ConfirmModal from '../components/ConfirmModal';

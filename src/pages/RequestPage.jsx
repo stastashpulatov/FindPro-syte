@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, MapPin, DollarSign, FileText, Upload, X, Send } from 'lucide-react';
+import { ArrowLeft, Upload, X, Send } from 'lucide-react';
 import api from '../services/api';
 
 const RequestPage = ({ onNavigate, categories, setAllRequests, allRequests, initialProviderId }) => {
@@ -21,7 +21,7 @@ const RequestPage = ({ onNavigate, categories, setAllRequests, allRequests, init
       alert('Для создания заявки необходимо войти в систему');
       onNavigate('home');
     }
-  }, []);
+  }, [onNavigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -160,7 +160,7 @@ const RequestPage = ({ onNavigate, categories, setAllRequests, allRequests, init
                   <div key={idx} className="relative group aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
                     <img
                       src={photo.startsWith('http') ? photo : `${api.defaults?.baseURL?.replace('/api/v1', '') || ''}${photo}`}
-                      alt={`Photo ${idx + 1}`}
+                      alt={`Фото ${idx + 1}`}
                       className="w-full h-full object-cover"
                     />
                     <button

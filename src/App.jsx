@@ -357,7 +357,6 @@ const App = () => {
   const [authOpen, setAuthOpen] = useState(false);
   const [isAuthed, setIsAuthed] = useState(api.isAuthenticated());
   const [currentUser, setCurrentUser] = useState(api.getStoredUser());
-  const [quotes, setQuotes] = useState([]);
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {

@@ -1,22 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Search, MapPin, Star, CheckCircle, Users, Clock, Shield, Award, ArrowRight, Zap } from 'lucide-react';
+import { Star, CheckCircle, Users, Clock, Shield, Award, ArrowRight, Zap } from 'lucide-react';
 
 const HomePage = ({ onNavigate, categories }) => {
   const [show, setShow] = useState(false);
   const [activeTestimonial, setActiveTestimonial] = useState(0);
-
-  useEffect(() => {
-    const t = setTimeout(() => setShow(true), 10);
-    return () => clearTimeout(t);
-  }, []);
-
-  // Автоматическая смена отзывов
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
 
   const testimonials = [
     {
@@ -38,6 +25,19 @@ const HomePage = ({ onNavigate, categories }) => {
       rating: 5
     }
   ];
+
+  useEffect(() => {
+    const t = setTimeout(() => setShow(true), 10);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Автоматическая смена отзывов
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [testimonials.length]);
 
   const features = [
     {
@@ -293,21 +293,21 @@ const HomePage = ({ onNavigate, categories }) => {
         </div>
       </section>
 
-      <style jsx>{`
-@keyframes fade -in {
+      <style>{`
+@keyframes fade-in {
   from {
-  opacity: 0;
-  transform: translateY(20px);
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
-          to {
-  opacity: 1;
-  transform: translateY(0);
+
+.animate-fade-in {
+  animation: fade-in 1s ease-out;
 }
-        }
-        
-        .animate-fade -in {
-  animation: fade -in 1s ease- out;
-        }
 `}</style>
     </div>
   );

@@ -11,7 +11,7 @@
 - ✅ Инициализирует базу данных
 - ✅ Создаст тестовых пользователей
 - ✅ Запустит backend на порту 8000
-- ✅ Запустит frontend на порту 5000/3000
+- ✅ Запустит frontend на порту 3000
 
 ## Ручной запуск
 
@@ -33,7 +33,7 @@ npm start
 
 ## 📍 Адреса
 
-- **Frontend**: http://localhost:5000 или http://localhost:3000
+- **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:8000
 - **API Docs**: http://localhost:8000/docs
 
@@ -48,7 +48,7 @@ npm start
 
 ### Создание заявки
 
-1. Откройте http://localhost:5000
+1. Откройте http://localhost:3000
 2. Нажмите "Создать заявку"
 3. Выберите категорию
 4. Заполните форму

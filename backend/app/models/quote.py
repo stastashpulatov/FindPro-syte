@@ -16,7 +16,8 @@ class Quote(Base):
     id = Column(Integer, primary_key=True, index=True)
     request_id = Column(Integer, ForeignKey("requests.id"))
     provider_id = Column(Integer, ForeignKey("providers.id"))
-    amount = Column(Float, nullable=False)
+    price = Column(Float, nullable=False)
+    days_to_complete = Column(Integer, nullable=True)
     message = Column(Text, nullable=True)
     status = Column(Enum(QuoteStatus), default=QuoteStatus.PENDING)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -27,4 +28,4 @@ class Quote(Base):
     provider = relationship("Provider", back_populates="quotes")
     
     def __repr__(self):
-        return f"<Quote {self.id} - {self.amount}>"
+        return f"<Quote {self.id} - {self.price}>"

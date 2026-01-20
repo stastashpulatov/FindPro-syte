@@ -13,7 +13,8 @@ class QuoteStatus(str, Enum):
 class QuoteBase(BaseModel):
     request_id: int
     provider_id: int
-    amount: float
+    price: float
+    days_to_complete: int
     message: Optional[str] = None
     status: QuoteStatus = QuoteStatus.PENDING
 
@@ -23,7 +24,8 @@ class QuoteCreate(QuoteBase):
 
 # Properties to receive on quote update
 class QuoteUpdate(BaseModel):
-    amount: Optional[float] = None
+    price: Optional[float] = None
+    days_to_complete: Optional[int] = None
     message: Optional[str] = None
     status: Optional[QuoteStatus] = None
 

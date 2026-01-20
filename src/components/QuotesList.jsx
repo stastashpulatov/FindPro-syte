@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { CheckCircle, XCircle, DollarSign, User, Clock } from 'lucide-react';
 import api from '../services/api';
 import Loader from './Loader';
@@ -10,11 +10,7 @@ const QuotesList = ({ requestId, onQuoteAccepted }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [confirmModal, setConfirmModal] = useState({ open: false, quoteId: null });
 
-    useEffect(() => {
-        loadQuotes();
-    }, [requestId]);
-
-    const loadQuotes = async () => {
+    const loadQuotes = useCallback(async () => {
         try {
             const response = await api.getQuotes({ request_id: requestId });
             setQuotes(response.data);
@@ -24,7 +20,12 @@ const QuotesList = ({ requestId, onQuoteAccepted }) => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [requestId]);
+
+    useEffect(() => {
+        setIsLoading(true);
+        loadQuotes();
+    }, [loadQuotes]);
 
     const handleAccept = (quoteId) => {
         setConfirmModal({ open: true, quoteId });

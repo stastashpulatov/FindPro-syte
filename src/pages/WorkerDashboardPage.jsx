@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Briefcase, Search, Calendar, MapPin } from 'lucide-react';
 import api from '../services/api';
 import Loader from '../components/Loader';
@@ -12,11 +12,7 @@ const WorkerDashboardPage = ({ onNavigate, currentUser }) => {
     const [applyingId, setApplyingId] = useState(null);
     const [quoteData, setQuoteData] = useState({ price: '', days_to_complete: '', message: '' });
 
-    useEffect(() => {
-        loadData();
-    }, [activeTab]);
-
-    const loadData = async () => {
+    const loadData = useCallback(async () => {
         setIsLoading(true);
         try {
             const response = await api.getRequests();
@@ -34,7 +30,11 @@ const WorkerDashboardPage = ({ onNavigate, currentUser }) => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [currentUser]);
+
+    useEffect(() => {
+        loadData();
+    }, [activeTab, loadData]);
 
     const handleApply = async (requestId) => {
         if (!quoteData.price || !quoteData.days_to_complete) {
